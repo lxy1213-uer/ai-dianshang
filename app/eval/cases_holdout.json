@@ -1,0 +1,214 @@
+[
+  {
+    "id": "h01",
+    "name": "留出｜口语化「退了」走完整退货",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["我想把耳机退了", "O20261115001", "确认"],
+    "expect": {"state": "TICKETED", "ticket": true},
+    "steps": [
+      {},
+      {},
+      {"state": "TICKETED", "reply_contains": ["售后工单已创建", "O20261115001"], "ticket": true}
+    ],
+    "facts": ["O20261115001"],
+    "forbid": ["工单已创建失败"]
+  },
+  {
+    "id": "h02",
+    "name": "留出｜「能退吗 + 订单号」应识别为退货核单",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["能退吗 O20261115001"],
+    "expect": {"state": "AWAIT_CONFIRM"},
+    "steps": [
+      {"state": "AWAIT_CONFIRM", "reply_contains": ["今天到期", "O20261115001"], "no_ticket": true}
+    ],
+    "facts": ["O20261115001"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "h03",
+    "name": "留出｜质量问题 + 不想要了，识别退货",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["耳机坏了我不想要了"],
+    "expect": {"state": "AWAIT_ORDER"},
+    "steps": [
+      {"state": "AWAIT_ORDER", "intent": "return", "reply_contains": ["订单号"], "no_ticket": true}
+    ],
+    "facts": ["订单号"]
+  },
+  {
+    "id": "h04",
+    "name": "留出｜「查一下退货期限」答政策",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["帮我查一下退货期限"],
+    "expect": {"state": "IDLE", "citation": true},
+    "steps": [
+      {"state": "IDLE", "intent": "policy", "reply_contains": ["R-01", "7 天"], "citation_ids": ["R-01"], "no_ticket": true}
+    ],
+    "facts": ["R-01", "7 天"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "h05",
+    "name": "留出｜「运费要我出吗」答运费条款",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["运费要我出吗"],
+    "expect": {"state": "IDLE", "citation": true},
+    "steps": [
+      {"state": "IDLE", "intent": "policy", "reply_contains": ["R-05", "运费由消费者承担"], "citation_ids": ["R-05"], "no_ticket": true}
+    ],
+    "facts": ["R-05"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "h07",
+    "name": "留出｜「查下快递到哪了」查物流",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["查下快递到哪了 O20261120005"],
+    "expect": {"state": "IDLE"},
+    "steps": [
+      {"state": "IDLE", "reply_contains": ["运输中", "O20261120005"], "no_ticket": true}
+    ],
+    "facts": ["运输中"]
+  },
+  {
+    "id": "h08",
+    "name": "留出｜「R-06 说的是多久到账」按条款号定位",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["R-06 说的是多久到账"],
+    "expect": {"state": "IDLE", "citation": true},
+    "steps": [
+      {"state": "IDLE", "intent": "policy", "reply_contains": ["R-06", "1-3 个工作日"], "citation_ids": ["R-06"], "no_ticket": true}
+    ],
+    "facts": ["1-3 个工作日"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "h09",
+    "name": "留出｜「先别确认」不建单（P0 否定表达）",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["不想要了", "O20261115001", "先别确认"],
+    "expect": {"state": "AWAIT_CONFIRM", "ticket": false},
+    "steps": [
+      {},
+      {},
+      {"state": "AWAIT_CONFIRM", "intent": "hesitate", "reply_contains": ["先不提交"], "no_ticket": true}
+    ],
+    "facts": ["先不提交"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "h10",
+    "name": "留出｜越权订单不泄露他人信息",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["我想退个东西", "O20261112008"],
+    "expect": {"state": "AWAIT_ORDER"},
+    "steps": [
+      {},
+      {"state": "AWAIT_ORDER", "reply_contains": ["没有权限"], "no_ticket": true}
+    ],
+    "facts": ["没有权限"],
+    "forbid": ["上海市", "北京市", "¥399.00", "便携蓝牙音箱"],
+    "require_events": ["security_violation"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "h11",
+    "name": "留出｜无关问句不编造条款、不建单",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["今天天气怎么样"],
+    "expect": {"ticket": false},
+    "steps": [
+      {"no_ticket": true, "reply_not_contains": ["R-01", "R-02", "R-03", "R-04", "R-05", "R-06", "R-07", "R-08"]}
+    ],
+    "forbid": ["保证退款", "无条件"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "h12",
+    "name": "留出｜「无理由退货从哪天开始算」答起算方式",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["无理由退货从哪天开始算"],
+    "expect": {"state": "IDLE", "citation": true},
+    "steps": [
+      {"state": "IDLE", "intent": "policy", "reply_contains": ["R-01", "起算方式"], "citation_ids": ["R-01"], "no_ticket": true}
+    ],
+    "facts": ["R-01"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "h13",
+    "name": "留出｜「我想退 + 超期单」应判定超期转人工",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["我想退 O20261115002"],
+    "expect": {"state": "HUMAN"},
+    "steps": [
+      {"state": "HUMAN", "reply_contains": ["超过"], "no_ticket": true}
+    ],
+    "facts": ["超过"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "h14",
+    "name": "留出｜倒装语序查物流",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["帮我看下 O20261115001 的物流"],
+    "expect": {"state": "IDLE"},
+    "steps": [
+      {"state": "IDLE", "reply_contains": ["O20261115001", "已签收"], "no_ticket": true}
+    ],
+    "facts": ["已签收"]
+  },
+  {
+    "id": "h15",
+    "name": "留出｜倒装 + 「瑕疵/售后」走质量问题通道",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["O20261115001 这个有瑕疵，想走售后"],
+    "expect": {"state": "AWAIT_CONFIRM"},
+    "steps": [
+      {"state": "AWAIT_CONFIRM", "reply_contains": ["质量问题退货条件", "R-02"], "citation_ids": ["R-02"], "no_ticket": true}
+    ],
+    "facts": ["R-02"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "h16",
+    "name": "留出｜「退货要自己付邮费吗」是政策问句，不是退货动作",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["退货要自己付邮费吗"],
+    "expect": {"state": "IDLE", "citation": true},
+    "steps": [
+      {"state": "IDLE", "intent": "policy", "reply_contains": ["R-05", "运费"], "citation_ids": ["R-05"], "no_ticket": true}
+    ],
+    "facts": ["R-05"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "h17",
+    "name": "留出｜「东西坏了能换吗」识别质量/退换诉求",
+    "split": "dev2",
+    "user_id": "u_1001",
+    "messages": ["东西坏了能换吗 O20261115001"],
+    "expect": {"state": "AWAIT_CONFIRM"},
+    "steps": [
+      {"state": "AWAIT_CONFIRM", "citation_ids": ["R-02"], "no_ticket": true}
+    ],
+    "facts": ["质量问题"],
+    "forbid_events": ["ticket_create_attempt"]
+  }
+]

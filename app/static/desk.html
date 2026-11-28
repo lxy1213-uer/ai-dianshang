@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>坐席工作台 · 小奈售后</title>
+<style>
+  :root {
+    --paper: #f2efe6; --card: #ffffff; --panel: #fbfaf6;
+    --ink: #16161a; --ink-2: #46443d; --muted: #8b8677;
+    --line: #e6e0d3; --line-soft: #efeade;
+    --blue: #2a47c6; --blue-soft: #eef1ff;
+    --green: #1f7a53; --green-soft: #e9f6ef;
+    --amber: #a2701a; --amber-soft: #fdf3e0;
+    --red: #b23b30; --red-soft: #fdeeec;
+    --radius: 14px; --shadow: 0 1px 2px rgba(30,26,15,.04), 0 8px 24px -12px rgba(30,26,15,.18);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 13px; }
+  .top { background: var(--card); border-bottom: 1px solid var(--line); padding: 14px 28px;
+    display: flex; align-items: center; gap: 16px; }
+  .top h1 { margin: 0; font-size: 16px; }
+  .top nav { margin-left: auto; display: flex; gap: 8px; }
+  .top nav a { text-decoration: none; color: var(--ink-2); padding: 6px 12px; border-radius: 8px; font-size: 12px; }
+  .top nav a.on, .top nav a:hover { background: var(--blue-soft); color: var(--blue); }
+  .wrap { max-width: 1200px; margin: 24px auto; padding: 0 24px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; box-shadow: var(--shadow); }
+  .stat b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 11px; }
+  .filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+  .filters button { border: 1px solid var(--line); background: var(--card); color: var(--ink-2);
+    padding: 7px 13px; border-radius: 8px; cursor: pointer; font-size: 12px; font-family: inherit; }
+  .filters button.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .filters label { margin-left: auto; color: var(--muted); font-size: 11px; display: flex; gap: 6px; align-items: center; }
+  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow: hidden; }
+  .card h2 { margin: 0; padding: 14px 18px; font-size: 13px; border-bottom: 1px solid var(--line-soft); }
+  .list { max-height: 560px; overflow-y: auto; }
+  .item { padding: 13px 18px; border-bottom: 1px solid var(--line-soft); cursor: pointer; }
+  .item:hover { background: var(--panel); }
+  .item.sel { background: var(--blue-soft); }
+  .item .row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .item .sid { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tag { font-size: 10px; padding: 2px 8px; border-radius: 999px; }
+  .tag.PENDING { background: var(--amber-soft); color: var(--amber); }
+  .tag.CLAIMED { background: var(--blue-soft); color: var(--blue); }
+  .tag.RESOLVED { background: var(--green-soft); color: var(--green); }
+  .tag.overdue { background: var(--red-soft); color: var(--red); }
+  .item .meta { color: var(--muted); font-size: 11px; line-height: 1.6; }
+  .detail { padding: 18px; }
+  .empty { color: var(--muted); text-align: center; padding: 60px 20px; }
+  .kv { display: grid; grid-template-columns: 88px 1fr; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+  .kv span:first-child { color: var(--muted); }
+  .ctx-box { background: var(--panel); border: 1px solid var(--line-soft); border-radius: 8px;
+    padding: 10px 12px; font-size: 11px; color: var(--ink-2); white-space: pre-wrap; word-break: break-all; max-height: 220px; overflow-y: auto; }
+  .actions { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
+  .btn { border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-family: inherit; }
+  .btn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .btn.green { background: var(--green); color: #fff; border-color: var(--green); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .reply-row { display: flex; gap: 8px; margin-top: 12px; }
+  .reply-row input { flex: 1; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px;
+    font-size: 12px; font-family: inherit; }
+  .replies { margin-top: 14px; }
+  .replies .r { background: var(--panel); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 12px; }
+  .replies .r small { color: var(--muted); display: block; margin-top: 3px; }
+  .copilot { margin: 14px 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .copilot h3 { margin: 0; padding: 10px 14px; font-size: 12px; background: var(--blue-soft); color: var(--blue);
+    display: flex; align-items: center; gap: 8px; }
+  .copilot h3 .badge { font-size: 10px; padding: 2px 7px; border-radius: 999px; background: var(--card); }
+  .copilot .body { padding: 12px 14px; }
+  .copilot .verdict { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+  .copilot .verdict.ok { color: var(--green); }
+  .copilot .verdict.warn { color: var(--amber); }
+  .copilot .sec { color: var(--muted); font-size: 11px; margin: 10px 0 5px; }
+  .copilot .draft { background: var(--panel); border: 1px solid var(--line-soft); border-radius: 8px;
+    padding: 10px 12px; font-size: 12px; line-height: 1.7; white-space: pre-wrap; max-height: 260px; overflow-y: auto; }
+  .risk { border-left: 3px solid var(--amber); padding: 6px 10px; margin-bottom: 5px; font-size: 11px; background: var(--amber-soft); border-radius: 4px; }
+  .risk.high { border-left-color: var(--red); background: var(--red-soft); }
+  .chips { display: flex; gap: 5px; flex-wrap: wrap; }
+  .chip { font-size: 10px; padding: 3px 8px; border-radius: 999px; background: var(--blue-soft); color: var(--blue); }
+  .copilot .actions-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(12px);
+    background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 12px;
+    opacity: 0; transition: .2s; pointer-events: none; z-index: 99; }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>坐席工作台</h1>
+  <nav>
+    <a href="/">客服会话</a>
+    <a href="/diagnose">售后诊断</a>
+    <a class="on" href="/desk">坐席工作台</a>
+    <a href="/metrics">埋点漏斗</a>
+  </nav>
+</div>
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><b id="stPending">—</b><span>待认领</span></div>
+    <div class="stat"><b id="stClaimed">—</b><span>处理中</span></div>
+    <div class="stat"><b id="stOverdue">—</b><span>已超时</span></div>
+    <div class="stat"><b id="stResolved">—</b><span>已归档</span></div>
+  </div>
+  <div class="filters">
+    <button data-state="" class="on">全部</button>
+    <button data-state="PENDING">待认领</button>
+    <button data-state="CLAIMED">处理中</button>
+    <button data-state="RESOLVED">已归档</button>
+    <label><input type="checkbox" id="onlyOverdue" /> 只看超时</label>
+  </div>
+  <div class="layout">
+    <div class="card">
+      <h2>转人工队列</h2>
+      <div class="list" id="queueList"></div>
+    </div>
+    <div class="card">
+      <h2>会话详情</h2>
+      <div class="detail" id="detail"><div class="empty">从左侧选择一条会话</div></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// 嵌入统一工作台时隐藏自带导航（父页面已有 tab），独立访问时保留。
+if (new URLSearchParams(location.search).get("embed") === "1") {
+  const top = document.querySelector(".top");
+  if (top) top.style.display = "none";
+  const wrap = document.querySelector(".wrap");
+  if (wrap) wrap.style.marginTop = "18px";
+}
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// 与统一工作台共用 localStorage 里的坐席 token；strict 模式下所有请求都要带。
+function api(path, options = {}) {
+  const token = localStorage.getItem("agn.staffToken") || "";
+  const headers = { ...(options.headers || {}) };
+  if (token) headers["X-Staff-Token"] = token;
+  return fetch(path, { ...options, headers }).then((r) => {
+    if (r.status === 401 && window.parent !== window) {
+      window.parent.toast && window.parent.toast("请先登录坐席账号");
+    }
+    return r;
+  });
+}
+let stateFilter = "", selected = null, items = [];
+let me = localStorage.getItem("deskName") || "坐席-01";
+let quickReplies = [], assignees = [];
+
+function toast(text) { const el=$("toast"); el.textContent=text; el.classList.add("on"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("on"),2200); }
+
+async function loadDeskConfig() {
+  try {
+    const d = await (await api("/api/desk/quick-replies")).json();
+    quickReplies = d.items || [];
+    assignees = d.assignees || [];
+  } catch (e) { /* 配置加载失败不影响主流程 */ }
+}
+
+async function loadQueue() {
+  const params = new URLSearchParams();
+  if (stateFilter) params.set("state", stateFilter);
+  if ($("onlyOverdue").checked) params.set("only_overdue", "true");
+  const d = await (await api("/api/desk/queue?" + params)).json();
+  items = d.items;
+  renderStats();
+  renderList();
+}
+
+async function renderStats() {
+  const all = await (await api("/api/desk/queue")).json();
+  const xs = all.items;
+  $("stPending").textContent = xs.filter(x=>x.state==="PENDING").length;
+  $("stClaimed").textContent = xs.filter(x=>x.state==="CLAIMED").length;
+  $("stOverdue").textContent = xs.filter(x=>x.overdue).length;
+  $("stResolved").textContent = xs.filter(x=>x.state==="RESOLVED").length;
+}
+
+function renderList() {
+  const box = $("queueList");
+  if (!items.length) { box.innerHTML = '<div class="empty">当前筛选下没有会话</div>'; return; }
+  box.innerHTML = items.map(x => `
+    <div class="item ${selected===x.queue_id?'sel':''}" data-qid="${esc(x.queue_id)}">
+      <div class="row1">
+        <span class="sid">${esc(x.session_id)}</span>
+        <span class="tag ${x.state}">${{PENDING:'待认领',CLAIMED:'处理中',RESOLVED:'已归档'}[x.state]}</span>
+        ${x.overdue?'<span class="tag overdue">超时</span>':''}
+      </div>
+      <div class="meta">${esc(x.reason)} · ${x.assignee?'坐席 '+esc(x.assignee):'未认领'} · ${esc(x.created_at)}</div>
+    </div>`).join("");
+  box.querySelectorAll(".item").forEach(el => el.onclick = () => select(el.dataset.qid));
+}
+
+async function select(qid) {
+  selected = qid;
+  renderList();
+  const d = await (await api("/api/desk/queue/" + qid)).json();
+  renderDetail(d);
+}
+
+function renderDetail(d) {
+  const c = d.context || {};
+  const slots = c.slots || {};
+  const canReply = d.state === "CLAIMED" && d.assignee === me;
+  $("detail").innerHTML = `
+    <div class="kv"><span>会话</span><span>${esc(d.session_id)}</span></div>
+    <div class="kv"><span>状态</span><span>${esc(d.state)} ${d.assignee?'· '+esc(d.assignee):''}</span></div>
+    <div class="kv"><span>工单</span><span>${esc(d.ticket_id||'—')}</span></div>
+    <div class="kv"><span>转人工原因</span><span>${esc(d.reason)}</span></div>
+    <div class="kv"><span>SLA 截止</span><span>${esc(d.sla_deadline||'—')} ${d.overdue?'（已超时）':''}</span></div>
+    <div class="copilot" id="copilotBox">
+      <h3>坐席 Copilot · 只读建议 <span class="badge">加载中…</span></h3>
+      <div class="body"><div style="color:var(--muted);font-size:11px">正在按当前订单与条款生成建议…</div></div>
+    </div>
+    <div style="margin-top:12px;color:var(--muted);font-size:11px">交接上下文</div>
+    <div class="ctx-box">${esc(JSON.stringify(c, null, 2))}</div>
+    <div class="actions">
+      <button class="btn primary" id="claimBtn" ${d.state!=="PENDING"?'disabled':''}>认领会话</button>
+      <button class="btn green" id="resolveBtn" ${d.state!=="CLAIMED"||d.assignee!==me?'disabled':''}>结束归档</button>
+    </div>
+    <div class="reassign-row" style="display:flex;gap:8px;align-items:center;margin:6px 0 12px">
+      <span style="color:var(--muted);font-size:11px">转派给</span>
+      <input id="assigneeInput" list="assigneeList" placeholder="坐席工号" style="flex:1;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-family:inherit" ${d.state==="RESOLVED"?'disabled':''} />
+      <datalist id="assigneeList">${assignees.map(a=>`<option value="${esc(a)}"></option>`).join('')}</datalist>
+      <button class="btn" id="reassignBtn" ${d.state==="RESOLVED"?'disabled':''}>转派</button>
+    </div>
+    <div style="color:var(--muted);font-size:11px;margin-bottom:6px">快捷回复（点选填入，可再编辑）</div>
+    <div class="quick-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      ${quickReplies.map(q=>`<button class="btn quick" data-text="${esc(q.text)}" title="${esc(q.text)}" style="padding:5px 10px;font-size:11px" ${canReply?'':'disabled'}>${esc(q.label)}</button>`).join('')}
+    </div>
+    <div class="reply-row">
+      <input id="replyInput" placeholder="输入回复内容…" ${canReply?'':'disabled'} />
+      <button class="btn" id="replyBtn" ${canReply?'':'disabled'}>发送</button>
+    </div>
+    <div class="replies">
+      ${(d.replies||[]).map(r=>`<div class="r">${esc(r.text)}<small>${esc(r.assignee)} · ${esc(r.at)}</small></div>`).join('')}
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
+      <div style="color:var(--muted);font-size:11px;margin-bottom:6px">退款执行（架构进阶 · 沙箱默认，绝不重复打款）</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <input id="refundTicket" placeholder="工单号 RT…" value="${esc(d.ticket_id||'')}" style="flex:1;min-width:150px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-family:inherit" />
+        <button class="btn" id="refundCheckBtn">查流水</button>
+        <button class="btn" id="refundExecBtn">执行退款</button>
+      </div>
+      <div id="refundResult" style="font-size:11px;color:var(--muted);margin-top:8px"></div>
+    </div>`;
+  const claimBtn = $("claimBtn");
+  if (claimBtn) claimBtn.onclick = async () => {
+    await api(`/api/desk/queue/${d.queue_id}/claim`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({assignee:me})});
+    toast("已认领"); await loadQueue(); await select(d.queue_id);
+  };
+  const resolveBtn = $("resolveBtn");
+  if (resolveBtn) resolveBtn.onclick = async () => {
+    await api(`/api/desk/queue/${d.queue_id}/resolve`, {method:"POST"});
+    toast("已归档"); await loadQueue(); await select(d.queue_id);
+  };
+  const sendReply = async () => {
+    const text = $("replyInput").value.trim();
+    if (!text) return;
+    const r = await api(`/api/desk/queue/${d.queue_id}/reply`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({assignee:me,text})});
+    if (!r.ok) { toast("回复失败：" + (await r.json()).detail); return; }
+    toast("回复已写入用户会话"); await select(d.queue_id);
+  };
+  const replyBtn = $("replyBtn"); if (replyBtn) replyBtn.onclick = sendReply;
+  // 架构进阶：退款执行 / 流水查询（工单默认取当前会话关联的那一张）
+  const refundTicket = $("refundTicket"), refundResult = $("refundResult");
+  const refundTid = () => (refundTicket ? refundTicket.value.trim() : "");
+  const checkBtn = $("refundCheckBtn");
+  if (checkBtn) checkBtn.onclick = async () => {
+    if (!refundTid()) return toast("请先填工单号");
+    const r = await api(`/api/tickets/${encodeURIComponent(refundTid())}/refund`);
+    const j = await r.json();
+    refundResult.textContent = j.refund
+      ? `流水：${j.refund.status} · ${j.refund.refund_id || "—"} · ${j.refund.gateway}`
+      : "暂无退款流水";
+  };
+  const execBtn = $("refundExecBtn");
+  if (execBtn) execBtn.onclick = async () => {
+    if (!refundTid()) return toast("请先填工单号");
+    const r = await api(`/api/tickets/${encodeURIComponent(refundTid())}/refund`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ operator: me }),
+    });
+    const j = await r.json();
+    if (!r.ok) {
+      refundResult.textContent = "失败：" + (j.detail?.message || j.detail || "未知错误");
+      return;
+    }
+    refundResult.textContent = `${j.status} · ${j.refund_id} · 工单状态 ${j.ticket?.status || "—"}${j.idempotent ? "（幂等命中，未重复打款）" : ""}`;
+    toast("退款执行完成");
+  };
+  const replyInput = $("replyInput");
+  if (replyInput) replyInput.onkeydown = (e) => { if (e.key === "Enter") sendReply(); };
+  document.querySelectorAll(".quick-row .quick").forEach(b => {
+    b.onclick = () => {
+      const inp = $("replyInput");
+      inp.value = b.dataset.text || "";
+      inp.focus();
+    };
+  });
+  const reassignBtn = $("reassignBtn");
+  if (reassignBtn) reassignBtn.onclick = async () => {
+    const target = $("assigneeInput").value.trim();
+    if (!target) { toast("请填写目标坐席工号"); return; }
+    if (target === me) { toast("已经是自己认领的会话"); return; }
+    const r = await api(`/api/desk/queue/${d.queue_id}/reassign`, {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({assignee: target}),
+    });
+    if (!r.ok) { const body = await r.json().catch(()=>({})); toast("转派失败：" + (body.detail || r.status)); return; }
+    toast("已转派给 " + target); await loadQueue(); await select(d.queue_id);
+  };
+  loadCopilot(d.queue_id, canReply);
+}
+
+async function loadCopilot(qid, canReply) {
+  const box = $("copilotBox");
+  if (!box) return;
+  try {
+    const r = await api(`/api/desk/queue/${encodeURIComponent(qid)}/copilot`);
+    if (!r.ok) { const body = await r.json().catch(()=>({})); throw new Error(body.detail?.message || body.detail || r.status); }
+    const s = await r.json();
+    const risks = s.risks || [];
+    const highs = risks.filter(x => x.level === "high").length;
+    const verdictOk = (s.eligibility?.eligible) && highs === 0;
+    const clauses = (s.clauses || []).map(x => `<span class="chip">${esc(x.clause_id)}</span>`).join("");
+    const riskHtml = risks.length
+      ? risks.map(x => `<div class="risk ${esc(x.level)}"><b>${esc(x.code)}</b> ${esc(x.message)}</div>`).join("")
+      : '<div style="color:var(--muted);font-size:11px">未命中风险提示，仍需坐席复核。</div>';
+    box.innerHTML = `
+      <h3>坐席 Copilot · 只读建议 <span class="badge">${esc(s.summary?.v_title || "未核单")}</span></h3>
+      <div class="body">
+        <div class="verdict ${verdictOk?'ok':'warn'}">${verdictOk?'✓':'!'} ${esc(s.summary?.v_title || '未核单')} · ${esc(s.summary?.reason_label || '')}</div>
+        <div class="sec">推荐答复草稿（点「采纳」填入回复框，可再编辑；不会自动发送）</div>
+        <div class="draft" id="copilotDraft">${esc(s.recommended_reply || '')}</div>
+        <div class="actions-row">
+          <button class="btn" id="copilotAdopt" ${canReply?'':'disabled'}>采纳到回复框</button>
+          <button class="btn" id="copilotRefresh">重新生成</button>
+        </div>
+        <div class="sec">条款依据</div>
+        <div class="chips">${clauses || '<span style="color:var(--muted);font-size:11px">无</span>'}</div>
+        <div class="sec">风险提示${highs?`（${highs} 项高风险）`:''}</div>
+        ${riskHtml}
+        <div class="sec">建议动作（均需坐席显式执行）</div>
+        <div class="chips">${(s.actions||[]).map(a=>`<span class="chip">${esc(a.label)}</span>`).join('') || '—'}</div>
+        <div class="sec">边界</div>
+        <div style="color:var(--muted);font-size:11px;line-height:1.6">${(s.boundaries||[]).map(esc).join('<br>')}</div>
+      </div>`;
+    const adopt = $("copilotAdopt");
+    if (adopt) adopt.onclick = () => {
+      const inp = $("replyInput"), draft = $("copilotDraft");
+      if (inp && draft) { inp.value = draft.textContent.trim(); inp.focus(); toast("已填入回复框，请复核后发送"); }
+    };
+    const refresh = $("copilotRefresh");
+    if (refresh) refresh.onclick = () => loadCopilot(qid, canReply);
+  } catch (e) {
+    box.innerHTML = `<h3>坐席 Copilot · 只读建议</h3><div class="body"><div class="risk high">建议生成失败：${esc(e.message)}</div></div>`;
+  }
+}
+
+document.querySelectorAll(".filters button").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".filters button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); stateFilter = b.dataset.state; loadQueue();
+});
+$("onlyOverdue").onchange = loadQueue;
+(async function init() { await loadDeskConfig(); await loadQueue(); })();
+</script>
+</body>
+</html>

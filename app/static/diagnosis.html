@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>售后诊断 · 小奈售后</title>
+<style>
+  :root {
+    --paper: #f2efe6; --card: #ffffff; --panel: #fbfaf6;
+    --ink: #16161a; --ink-2: #46443d; --muted: #8b8677;
+    --line: #e6e0d3; --line-soft: #efeade;
+    --blue: #2a47c6; --blue-soft: #eef1ff;
+    --green: #1f7a53; --green-soft: #e9f6ef;
+    --amber: #a2701a; --amber-soft: #fdf3e0;
+    --red: #b23b30; --red-soft: #fdeeec;
+    --radius: 14px; --shadow: 0 1px 2px rgba(30,26,15,.04), 0 8px 24px -12px rgba(30,26,15,.18);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 13px; }
+  .top { background: var(--card); border-bottom: 1px solid var(--line); padding: 14px 28px;
+    display: flex; align-items: center; gap: 16px; }
+  .top h1 { margin: 0; font-size: 16px; }
+  .top nav { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .top nav a { text-decoration: none; color: var(--ink-2); padding: 6px 12px; border-radius: 8px; font-size: 12px; }
+  .top nav a.on, .top nav a:hover { background: var(--blue-soft); color: var(--blue); }
+  .wrap { max-width: 1180px; margin: 24px auto; padding: 0 24px 48px; }
+  .intro { background: var(--blue-soft); border: 1px solid #d8dffe; border-radius: var(--radius);
+    padding: 14px 18px; margin-bottom: 18px; color: var(--blue); font-size: 12.5px; line-height: 1.75; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow: hidden; margin-bottom: 16px; }
+  .card h2 { margin: 0; padding: 14px 18px; font-size: 13px; border-bottom: 1px solid var(--line-soft); }
+  .form { padding: 18px; display: grid; grid-template-columns: 220px 1fr; gap: 14px 18px; }
+  label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  input, textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px;
+    font-size: 12px; font-family: inherit; background: var(--card); color: var(--ink); }
+  textarea { min-height: 76px; resize: vertical; line-height: 1.6; }
+  .row-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  button { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink-2); cursor: pointer; font-size: 12px; font-family: inherit; }
+  button.primary { border-color: var(--blue); background: var(--blue); color: #fff; }
+  button.ghost { background: var(--panel); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .examples { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+  .order-picker { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .order-picker select { flex: 1; min-width: 260px; padding: 9px 12px; border: 1px solid var(--line);
+    border-radius: 9px; font-size: 12px; font-family: inherit; background: var(--card); color: var(--ink); }
+  .order-picker .hint { color: var(--muted); font-size: 11px; }
+  .examples button { font-size: 11px; padding: 6px 10px; }
+  .layout { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; }
+  .section { padding: 16px 18px; border-bottom: 1px solid var(--line-soft); }
+  .section:last-child { border-bottom: none; }
+  .section h3 { margin: 0 0 10px; font-size: 12px; color: var(--ink-2); }
+  .verdict { display: flex; align-items: flex-start; gap: 12px; }
+  .pill { font-size: 11px; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .pill.ok { background: var(--green-soft); color: var(--green); }
+  .pill.wait { background: var(--amber-soft); color: var(--amber); }
+  .pill.no { background: var(--red-soft); color: var(--red); }
+  .pill.info { background: var(--blue-soft); color: var(--blue); }
+  .verdict .head { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .verdict .sum { color: var(--ink-2); line-height: 1.8; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  td { padding: 7px 0; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  td:first-child { width: 110px; color: var(--muted); }
+  td:last-child { text-align: right; color: var(--muted); font-size: 11px; white-space: nowrap; }
+  .clause { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; background: var(--panel); }
+  .clause .cid { font-size: 11px; color: var(--blue); font-weight: 600; }
+  .clause .ct { margin: 4px 0; font-size: 12px; }
+  .clause .cs { color: var(--ink-2); font-size: 11.5px; line-height: 1.7; }
+  ul { margin: 0; padding-left: 18px; line-height: 1.85; color: var(--ink-2); }
+  .boundary li { color: var(--muted); }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .exec { border-top: 1px dashed var(--line); padding-top: 14px; margin-top: 14px; }
+  .exec .hint { color: var(--muted); font-size: 11px; line-height: 1.7; margin: 8px 0 0; }
+  .result { color: var(--green); background: var(--green-soft); border: 1px solid #d3ecdf; border-radius: 10px;
+    padding: 10px 12px; font-size: 12px; line-height: 1.7; margin-bottom: 12px; }
+  .empty { color: var(--muted); text-align: center; padding: 56px 20px; line-height: 1.8; }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(12px);
+    background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 12px;
+    opacity: 0; transition: .2s; pointer-events: none; z-index: 99; }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (max-width: 900px) { .form, .layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>售后诊断</h1>
+  <nav>
+    <a href="/">客服会话</a>
+    <a class="on" href="/diagnose">售后诊断</a>
+    <a href="/portal">自助进度</a>
+    <a href="/desk">坐席工作台</a>
+    <a href="/metrics">埋点漏斗</a>
+  </nav>
+</div>
+<div class="wrap">
+  <div class="intro">
+    这不是固定话术：系统会把你的问题、订单记录和政策条款交叉核对，给出「结论 + 事实 + 依据 + 缺口 + 下一步」。
+    只读诊断不改订单；创建工单或转人工都必须显式确认，且执行前会重新核单。
+  </div>
+
+  <div class="card">
+    <h2>描述你的售后问题</h2>
+    <div class="form">
+      <div>
+        <label for="userId">用户 ID（demo 模式可切换体验隔离）</label>
+        <input id="userId" value="u_1001" maxlength="64" />
+      </div>
+      <div>
+        <label for="orderId">订单号（可留空，系统会尝试从描述中唯一匹配）</label>
+        <input id="orderId" placeholder="例如 O20261115001" maxlength="64" />
+      </div>
+      <div class="order-picker">
+        <select id="orderPicker" aria-label="从我的订单中选择"><option value="">加载我的订单中…</option></select>
+        <button class="ghost" id="refreshOrders">刷新订单</button>
+        <span class="hint" id="orderSourceHint">来源：默认演示数据</span>
+      </div>
+      <div style="grid-column:1 / -1">
+        <label for="question">你想问什么</label>
+        <textarea id="question" placeholder="例如：这个耳机签收 7 天了，还能退吗？">这个耳机签收 7 天了，还能退吗？</textarea>
+      </div>
+      <div class="row-actions">
+        <button class="primary" id="diagBtn">生成诊断</button>
+        <div class="examples">
+          <button data-q="这个耳机签收 7 天了，还能退吗？" data-o="O20261115001">可退示例</button>
+          <button data-q="刻歪了，能退吗？" data-o="O20261118004">质量问题示例</button>
+          <button data-q="定制刻字保温杯不想要了，能退吗？" data-o="">定制示例</button>
+          <button data-q="已经退款了，怎么又让我退货？" data-o="O20261114011">已退款示例</button>
+          <button data-q="这个蓝莓坏了一半，能退吗？" data-o="O20261110006">生鲜质量示例</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout" id="layout" style="display:none">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;padding-right:18px">
+        <h2 style="flex:1;border:0">诊断结论</h2>
+        <button class="ghost" id="exportHtml" title="打开可打印报告，浏览器可另存为 PDF">导出 PDF 报告</button>
+        <button class="ghost" id="exportXlsx" title="下载 Excel 多工作表报告">导出 Excel</button>
+      </div>
+      <div class="section">
+        <div class="verdict">
+          <span class="pill info" id="verdictPill">分析中</span>
+          <div>
+            <div class="head" id="verdictHead"></div>
+            <div class="sum" id="verdictSum"></div>
+          </div>
+        </div>
+      </div>
+      <div class="section">
+        <h3>订单与诉求事实</h3>
+        <table><tbody id="facts"></tbody></table>
+      </div>
+      <div class="section">
+        <h3>条款证据</h3>
+        <div id="evidence"></div>
+      </div>
+      <div class="section">
+        <h3>执行动作</h3>
+        <div class="actions" id="actions"></div>
+        <div class="exec">
+          <label for="confirmText">确认语（必须精确匹配）</label>
+          <input id="confirmText" placeholder="先点上方动作，自动填入确认语" maxlength="64" />
+          <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="primary" id="execBtn" disabled>确认执行</button>
+            <span class="hint" id="execHint">只读诊断不会创建工单或转人工。</span>
+          </div>
+          <div class="result" id="execResult" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>缺口与边界</h2>
+      <div class="section">
+        <h3>还缺什么</h3>
+        <ul id="gaps"></ul>
+      </div>
+      <div class="section">
+        <h3>下一步</h3>
+        <ul id="nextSteps"></ul>
+      </div>
+      <div class="section">
+        <h3>判定依据来源</h3>
+        <ul id="reasonEvidence"></ul>
+      </div>
+      <div class="section">
+        <h3>系统边界</h3>
+        <ul class="boundary" id="boundaries"></ul>
+      </div>
+      <div class="section">
+        <h3>诊断编号</h3>
+        <div id="decisionMeta" style="color:var(--muted);font-size:11.5px;line-height:1.7"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+if (new URLSearchParams(location.search).get("embed") === "1") {
+  const top = document.querySelector(".top");
+  if (top) top.style.display = "none";
+  const wrap = document.querySelector(".wrap");
+  if (wrap) wrap.style.marginTop = "18px";
+}
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let current = null;
+let pendingAction = "";
+function toast(msg) {
+  const el = $("toast"); el.textContent = msg; el.classList.add("on");
+  setTimeout(() => el.classList.remove("on"), 2400);
+}
+function headers() {
+  const token = localStorage.getItem("agn.authToken") || "";
+  return token ? { "Authorization": "Bearer " + token } : {};
+}
+function li(items) {
+  return (items || []).map((x) => "<li>" + esc(x) + "</li>").join("") || "<li>无</li>";
+}
+function pill(code) {
+  if (code === "ELIGIBLE") return ["ok", "可申请"];
+  if (["HUMAN_REVIEW", "NEED_ORDER", "NEED_ORDER_CONFIRM", "DEGRADED"].includes(code)) return ["wait", "需补充"];
+  return ["no", "不可自助办理"];
+}
+document.querySelectorAll(".examples button").forEach((b) => {
+  b.addEventListener("click", () => { $("question").value = b.dataset.q; $("orderId").value = b.dataset.o; });
+});
+
+async function loadMyOrders() {
+  const uid = $("userId").value.trim() || "u_1001";
+  const previous = $("orderId").value.trim();
+  try {
+    const r = await fetch("/api/orders?limit=50&user_id=" + encodeURIComponent(uid), { headers: headers() });
+    const d = await r.json();
+    if (!r.ok) {
+      $("orderPicker").innerHTML = '<option value="">订单源不可用</option>';
+      $("orderSourceHint").textContent = "订单源不可用，请先检查服务配置";
+      return;
+    }
+    const orders = d.orders || [];
+    $("orderPicker").innerHTML = '<option value="">从我的订单中选择…</option>' + orders.map((o) =>
+      '<option value="' + esc(o.order_id) + '">' + esc(o.title) + " · " + esc(o.status_label) +
+      " · " + esc(o.order_id) + " · ¥" + esc(o.amount) + "</option>"
+    ).join("");
+    if (orders.some((o) => o.order_id === previous)) $("orderPicker").value = previous;
+    $("orderSourceHint").textContent = "来源：" + (d.source?.mode || "-") + " · " + orders.length + " 笔";
+  } catch (e) {
+    $("orderPicker").innerHTML = '<option value="">订单加载失败</option>';
+    $("orderSourceHint").textContent = "网络错误，请点击刷新订单";
+  }
+}
+
+async function diagnose() {
+  $("diagBtn").disabled = true;
+  $("execResult").style.display = "none";
+  pendingAction = ""; $("execBtn").disabled = true; $("confirmText").value = "";
+  try {
+    const r = await fetch("/api/aftersale/diagnose", {
+      method: "POST", headers: { "Content-Type": "application/json", ...headers() },
+      body: JSON.stringify({
+        question: $("question").value,
+        user_id: $("userId").value.trim() || "u_1001",
+        order_id: $("orderId").value.trim() || null,
+      }),
+    });
+    const d = await r.json();
+    if (!r.ok) { toast(typeof d.detail === "string" ? d.detail : (d.detail?.message || "诊断失败")); return; }
+    current = d; render(d); $("layout").style.display = "grid";
+  } catch (e) { toast("网络错误，请重试"); }
+  finally { $("diagBtn").disabled = false; }
+}
+function render(d) {
+  const [cls, label] = pill(d.verdict.code);
+  const p = $("verdictPill"); p.className = "pill " + cls; p.textContent = label;
+  $("verdictHead").textContent = d.verdict.headline || d.verdict.label;
+  $("verdictSum").textContent = d.verdict.summary || "";
+  $("facts").innerHTML = (d.facts || []).map((f) =>
+    "<tr><td>" + esc(f.label) + "</td><td>" + esc(f.value) + " <span>(" + esc(f.source) + ")</span></td></tr>"
+  ).join("");
+  $("evidence").innerHTML = (d.evidence || []).map((c) =>
+    '<div class="clause"><div class="cid">【' + esc(c.clause_id) + '】' + esc(c.title) +
+    '</div><div class="cs">' + esc(c.snippet) + '</div></div>'
+  ).join("") || '<div class="empty">本次没有可引用的条款</div>';
+  $("gaps").innerHTML = li(d.gaps);
+  $("nextSteps").innerHTML = li(d.next_steps);
+  $("boundaries").innerHTML = li(d.boundaries);
+  const re = d.reason_evidence || {};
+  $("reasonEvidence").innerHTML = li([
+    "处理方式：" + (d.reason === "quality" ? "质量问题通道" : "七天无理由通道"),
+    "证据规则：" + (re.rule || "—"),
+    "命中的缺陷证据：" + ((re.evidence || []).join("、") || "无"),
+    "属性描述（不计入缺陷）：" + ((re.attributes || []).join("、") || "无"),
+  ]);
+  $("decisionMeta").innerHTML = esc(d.decision_id) + "<br/>有效期 " + esc(d.expires_in_seconds) + " 秒 · 执行前会重新核单";
+  $("actions").innerHTML = (d.actions || []).map((a) => {
+    const btn = '<button class="' + (a.enabled ? "ghost" : "") + '" data-action="' + esc(a.id) +
+      '" data-phrase="' + esc(d.execution.confirm_phrases[a.id] || "") + '" title="' + esc(a.why) + '"' +
+      (a.enabled ? "" : " disabled") + ">" + esc(a.label) + "</button>";
+    return btn;
+  }).join("");
+  document.querySelectorAll("#actions button[data-action]").forEach((b) => {
+    b.addEventListener("click", () => {
+      pendingAction = b.dataset.action;
+      $("confirmText").value = b.dataset.phrase || "";
+      $("execBtn").disabled = false;
+      $("execHint").textContent = "确认语已填入，请核对后点击「确认执行」。";
+    });
+  });
+}
+async function execute() {
+  if (!current || !pendingAction) return;
+  $("execBtn").disabled = true;
+  try {
+    const r = await fetch("/api/aftersale/execute", {
+      method: "POST", headers: { "Content-Type": "application/json", ...headers() },
+      body: JSON.stringify({
+        decision_id: current.decision_id,
+        user_id: $("userId").value.trim() || "u_1001",
+        action: pendingAction,
+        confirm_text: $("confirmText").value,
+      }),
+    });
+    const d = await r.json();
+    if (!r.ok) { toast(typeof d.detail === "string" ? d.detail : (d.detail?.message || "执行失败")); return; }
+    const box = $("execResult"); box.style.display = "block";
+    box.textContent = (d.duplicate ? "重复执行，返回原结果：" : "执行成功：") + (d.reply || "") +
+      (d.ticket ? " 工单号 " + d.ticket.ticket_id : "");
+    toast(pendingAction === "create_ticket" ? "工单已创建" : "已转人工");
+  } catch (e) { toast("网络错误，请重试"); }
+  finally { $("execBtn").disabled = false; }
+}
+async function exportReport(fmt) {
+  if (!current || !current.decision_id) { toast("请先生成诊断"); return; }
+  const q = new URLSearchParams({
+    user_id: $("userId").value.trim() || "u_1001", format: fmt,
+  });
+  try {
+    const r = await fetch("/api/reports/diagnosis/" + encodeURIComponent(current.decision_id) + "?" + q,
+      { headers: headers() });
+    if (!r.ok) { const d = await r.json().catch(() => ({})); toast(d.detail || "导出失败"); return; }
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    if (fmt === "html") {
+      window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } else {
+      const a = document.createElement("a");
+      a.href = url; a.download = "诊断报告-" + current.decision_id + ".xlsx";
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    }
+  } catch (e) { toast("网络错误，请重试"); }
+}
+$("exportHtml").addEventListener("click", () => exportReport("html"));
+$("exportXlsx").addEventListener("click", () => exportReport("xlsx"));
+$("diagBtn").addEventListener("click", diagnose);
+$("execBtn").addEventListener("click", execute);
+$("refreshOrders").addEventListener("click", loadMyOrders);
+$("orderPicker").addEventListener("change", () => {
+  if ($("orderPicker").value) $("orderId").value = $("orderPicker").value;
+});
+$("userId").value = localStorage.getItem("agn.user") || "u_1001";
+$("userId").addEventListener("change", () => {
+  localStorage.setItem("agn.user", $("userId").value.trim());
+  loadMyOrders();
+});
+loadMyOrders();
+</script>
+</body>
+</html>

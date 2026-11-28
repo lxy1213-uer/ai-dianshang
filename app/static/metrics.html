@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>埋点漏斗 · 小奈售后</title>
+<style>
+  :root {
+    --paper: #f2efe6; --card: #ffffff; --panel: #fbfaf6;
+    --ink: #16161a; --ink-2: #46443d; --muted: #8b8677;
+    --line: #e6e0d3; --line-soft: #efeade;
+    --blue: #2a47c6; --blue-soft: #eef1ff;
+    --green: #1f7a53; --green-soft: #e9f6ef;
+    --amber: #a2701a; --amber-soft: #fdf3e0;
+    --red: #b23b30; --red-soft: #fdeeec;
+    --radius: 14px; --shadow: 0 1px 2px rgba(30,26,15,.04), 0 8px 24px -12px rgba(30,26,15,.18);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 13px; }
+  .top { background: var(--card); border-bottom: 1px solid var(--line); padding: 14px 28px;
+    display: flex; align-items: center; gap: 16px; }
+  .top h1 { margin: 0; font-size: 16px; }
+  .top nav { margin-left: auto; display: flex; gap: 8px; }
+  .top nav a { text-decoration: none; color: var(--ink-2); padding: 6px 12px; border-radius: 8px; font-size: 12px; }
+  .top nav a.on, .top nav a:hover { background: var(--blue-soft); color: var(--blue); }
+  .wrap { max-width: 1100px; margin: 24px auto; padding: 0 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 20px 22px; margin-bottom: 18px; }
+  .card h2 { margin: 0 0 16px; font-size: 14px; }
+  .filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+  .filters input { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; font-family: inherit; }
+  .filters button { padding: 7px 14px; border: 1px solid var(--blue); background: var(--blue); color: #fff;
+    border-radius: 8px; cursor: pointer; font-size: 12px; font-family: inherit; }
+  .funnel { display: flex; flex-direction: column; gap: 10px; }
+  .step { display: grid; grid-template-columns: 96px 1fr 90px; gap: 12px; align-items: center; }
+  .step .label { font-size: 12px; color: var(--ink-2); }
+  .bar-track { background: var(--panel); border-radius: 8px; height: 30px; overflow: hidden; border: 1px solid var(--line-soft); }
+  .bar { height: 100%; background: linear-gradient(90deg, var(--blue), #5a72e0); border-radius: 8px;
+    display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 11px; min-width: 2px; transition: width .4s; }
+  .step .nums { text-align: right; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .step .nums small { color: var(--muted); display: block; font-size: 10px; }
+  .summary { display: flex; gap: 24px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+  .summary div { font-size: 12px; }
+  .summary b { font-size: 18px; font-variant-numeric: tabular-nums; display: block; }
+  .summary span { color: var(--muted); font-size: 11px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line-soft); }
+  th { color: var(--muted); font-weight: 500; font-size: 11px; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .note { color: var(--muted); font-size: 11px; line-height: 1.6; margin-top: 12px; }
+  .branches { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .branch { background: var(--amber-soft); color: var(--amber); padding: 6px 12px; border-radius: 8px; font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>埋点漏斗</h1>
+  <nav>
+    <a href="/">客服会话</a>
+    <a href="/diagnose">售后诊断</a>
+    <a href="/desk">坐席工作台</a>
+    <a class="on" href="/metrics">埋点漏斗</a>
+  </nav>
+</div>
+<div class="wrap">
+  <div class="card">
+    <h2>转化漏斗</h2>
+    <div class="filters">
+      <label>从 <input type="date" id="dateFrom" /></label>
+      <label>到 <input type="date" id="dateTo" /></label>
+      <button id="applyBtn">应用筛选</button>
+      <button id="clearBtn" style="background:var(--panel);color:var(--ink-2);border-color:var(--line)">清除</button>
+    </div>
+    <div class="funnel" id="funnel"></div>
+    <div class="summary">
+      <div><b id="totalSessions">—</b><span>会话总数</span></div>
+      <div><b id="overallConv">—</b><span>整体转化率</span></div>
+      <div><b id="maxDrop">—</b><span>最大流失节点</span></div>
+    </div>
+    <div class="branches" id="branches"></div>
+  </div>
+  <div class="card">
+    <h2>单 Agent / 多 Agent 效果对比</h2>
+    <table>
+      <thead><tr><th>模式</th><th class="num">轮次</th><th class="num">成功率</th><th class="num">平均耗时(ms)</th><th class="num">估算 Token</th><th class="num">实测 Token</th></tr></thead>
+      <tbody id="modeBody"></tbody>
+    </table>
+    <div class="note">埋点采用幂等 event_id，刷新/重试不重复计数；负载已脱敏，不含手机号、详细地址。写失败自动降级，不影响聊天。</div>
+  </div>
+</div>
+<script>
+// 嵌入统一工作台时隐藏自带导航（父页面已有 tab），独立访问时保留。
+if (new URLSearchParams(location.search).get("embed") === "1") {
+  const top = document.querySelector(".top");
+  if (top) top.style.display = "none";
+  const wrap = document.querySelector(".wrap");
+  if (wrap) wrap.style.marginTop = "18px";
+}
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function api(path, options = {}) {
+  const token = localStorage.getItem("agn.staffToken") || "";
+  const headers = { ...(options.headers || {}) };
+  if (token) headers["X-Staff-Token"] = token;
+  return fetch(path, { ...options, headers });
+}
+const pct = (x) => x == null ? "—" : (x*100).toFixed(1) + "%";
+
+async function loadFunnel() {
+  const p = new URLSearchParams();
+  if ($("dateFrom").value) p.set("from", $("dateFrom").value);
+  if ($("dateTo").value) p.set("to", $("dateTo").value);
+  const d = await (await api("/api/metrics/funnel?" + p)).json();
+  const steps = d.steps || [];
+  const max = Math.max(1, ...steps.map(s=>s.sessions));
+  $("funnel").innerHTML = steps.map(s => `
+    <div class="step">
+      <div class="label">${esc(s.label)}</div>
+      <div class="bar-track"><div class="bar" style="width:${Math.max(2, s.sessions/max*100)}%">${s.sessions||""}</div></div>
+      <div class="nums">${s.sessions}<small>${s.conversion_from_prev==null ? "—" : pct(s.conversion_from_prev)}</small></div>
+    </div>`).join("");
+  $("totalSessions").textContent = d.total_sessions;
+  $("overallConv").textContent = pct(steps.length ? steps[steps.length-1].conversion_overall : null);
+  // 找相邻降幅最大的节点
+  let dropIdx = -1, drop = 0;
+  steps.forEach((s,i)=>{ if (i>0 && s.conversion_from_prev!=null) { const d_ = 1 - s.conversion_from_prev; if (d_>drop) {drop=d_; dropIdx=i;} }});
+  $("maxDrop").textContent = dropIdx > 0 ? steps[dropIdx].label : "—";
+  const branchNames = {order_query_failed:"查单失败", ineligible:"资格不符", cancelled:"用户取消", handed_off:"转人工"};
+  $("branches").innerHTML = Object.entries(d.branches||{}).map(([k,v])=>`<span class="branch">${esc(branchNames[k]||k)} ${v}</span>`).join("");
+}
+
+async function loadMode() {
+  const d = await (await api("/api/metrics/by-mode")).json();
+  const names = {multi:"多 Agent", single:"单 Agent"};
+  $("modeBody").innerHTML = Object.entries(d).map(([k,g])=>`
+    <tr><td>${esc(names[k]||k)}</td><td class="num">${g.turns}</td><td class="num">${pct(g.success_rate)}</td>
+    <td class="num">${g.avg_ms}</td><td class="num">${g.estimated_tokens}</td><td class="num">${g.measured_tokens}</td></tr>`).join("")
+    || '<tr><td colspan="6" style="text-align:center;color:var(--muted)">暂无数据，先去客服会话聊几句</td></tr>';
+}
+
+$("applyBtn").onclick = loadFunnel;
+$("clearBtn").onclick = () => { $("dateFrom").value=""; $("dateTo").value=""; loadFunnel(); };
+loadFunnel();
+loadMode();
+</script>
+</body>
+</html>

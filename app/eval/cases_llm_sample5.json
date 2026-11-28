@@ -1,0 +1,159 @@
+[
+  {
+    "id": "w01",
+    "name": "查无订单：虚构单号一",
+    "split": "llm_sample5",
+    "user_id": "u_1001",
+    "messages": ["帮我退这个 O66666666666"],
+    "expect": {"state": "AWAIT_ORDER", "reply_contains": ["没有查到"]},
+    "steps": [
+      {"state": "AWAIT_ORDER", "reply_contains": ["没有查到订单", "O66666666666"], "no_ticket": true}
+    ],
+    "facts": ["没有查到订单"],
+    "forbid": ["工单已创建", "金额 ¥"],
+    "forbid_events": ["ticket_create_attempt"],
+    "source_case": "c07",
+    "focus": "信号组：查无订单（极性=没有/未 + 动作=查到/查询）——覆盖未查到、未能查询到"
+  },
+  {
+    "id": "w02",
+    "name": "查无订单：虚构单号二",
+    "split": "llm_sample5",
+    "user_id": "u_1001",
+    "messages": ["申请退货 O55555555555"],
+    "expect": {"state": "AWAIT_ORDER", "reply_contains": ["没有查到"]},
+    "steps": [
+      {"state": "AWAIT_ORDER", "reply_contains": ["没有查到订单", "O55555555555"], "no_ticket": true}
+    ],
+    "facts": ["没有查到订单"],
+    "forbid": ["工单已创建"],
+    "forbid_events": ["ticket_create_attempt"],
+    "source_case": "c07",
+    "focus": "信号组：查无订单，换单号复测极性语素门槛"
+  },
+  {
+    "id": "w03",
+    "name": "未签收：还没送到",
+    "split": "llm_sample5",
+    "user_id": "u_1001",
+    "messages": ["O20261120005 还没送到，我想退"],
+    "expect": {"state": "IDLE", "reply_contains": ["签收"]},
+    "steps": [
+      {"state": "IDLE", "reply_contains": ["尚未签收", "拒收"], "citation_ids": ["R-04"], "no_ticket": true}
+    ],
+    "facts": ["尚未签收"],
+    "forbid": ["工单已创建", "符合七天无理由退货条件"],
+    "forbid_events": ["ticket_create_attempt"],
+    "source_case": "c04",
+    "focus": "信号组：尚未签收（极性=尚未/还没 + 动作=签收/收到）——覆盖还没收到"
+  },
+  {
+    "id": "w04",
+    "name": "已退款：退款了还想退",
+    "split": "llm_sample5",
+    "user_id": "u_1001",
+    "messages": ["O20261114011 这个退款了还想退"],
+    "expect": {"state": "HUMAN", "reply_contains": ["已退款"]},
+    "steps": [
+      {"state": "HUMAN", "reply_contains": ["已退款", "不能重复申请"], "citation_ids": ["R-06"], "no_ticket": true}
+    ],
+    "facts": ["已退款", "不能重复申请"],
+    "forbid": ["工单已创建", "符合七天无理由退货条件"],
+    "forbid_events": ["ticket_create_attempt"],
+    "source_case": "c16",
+    "focus": "信号组：已退款（完成=已/完成 + 退款）+ 不能重复申请（否定+重复）——覆盖已完成退款、不支持重复申请"
+  },
+  {
+    "id": "w05",
+    "name": "超期退货：结论短语「超过」",
+    "split": "llm_sample5",
+    "user_id": "u_1001",
+    "messages": ["退一下 O20261115002 这个"],
+    "expect": {"state": "HUMAN"},
+    "steps": [
+      {"state": "HUMAN", "reply_contains": ["超过"], "no_ticket": true}
+    ],
+    "facts": ["超过"],
+    "forbid_events": ["ticket_create_attempt"],
+    "source_case": "c08",
+    "focus": "非信号组结论短语「超过」保持精确匹配，防止放水"
+  },
+  {
+    "id": "w06",
+    "name": "运费承担方：结构短语不放宽",
+    "split": "llm_sample5",
+    "user_id": "u_1001",
+    "messages": ["质量问题的运费是不是商家出"],
+    "expect": {"state": "IDLE", "citation": true},
+    "steps": [
+      {"state": "IDLE", "intent": "policy", "reply_contains": ["退货运费由商家承担"], "citation_ids": ["R-02", "R-05"], "no_ticket": true}
+    ],
+    "facts": ["退货运费由商家承担"],
+    "forbid_events": ["ticket_create_attempt"],
+    "source_case": "h05",
+    "focus": "结构性短语不在信号规格：运费承担方必须精确出现，护栏保守拦截等价改写"
+  },
+  {
+    "id": "w07",
+    "name": "定制类目：转人工结论短语",
+    "split": "llm_sample5",
+    "user_id": "u_1001",
+    "messages": ["刻字保温杯 O20261118004 申请售后"],
+    "expect": {"state": "HUMAN", "citation": true},
+    "steps": [
+      {"state": "HUMAN", "reply_contains": ["定制", "15 天"], "citation_ids": ["R-03"], "no_ticket": true}
+    ],
+    "facts": ["定制"],
+    "forbid": ["工单已创建", "符合七天无理由退货条件"],
+    "forbid_events": ["ticket_create_attempt"],
+    "source_case": "c05",
+    "focus": "结论短语「定制」与时效数字保持精确匹配"
+  },
+  {
+    "id": "w08",
+    "name": "政策问答：数字断言不放宽",
+    "split": "llm_sample5",
+    "user_id": "u_1001",
+    "messages": ["无理由退货是几天期限"],
+    "expect": {"state": "IDLE", "citation": true},
+    "steps": [
+      {"state": "IDLE", "intent": "policy", "reply_contains": ["R-01", "7 天"], "citation_ids": ["R-01"], "no_ticket": true}
+    ],
+    "facts": ["7 天"],
+    "forbid_events": ["ticket_create_attempt"],
+    "source_case": "h12",
+    "focus": "数字断言不在信号规格：7 天 不会匹配 8 天 / 六天"
+  },
+  {
+    "id": "w09",
+    "name": "查到订单：确认流程",
+    "split": "llm_sample5",
+    "user_id": "u_1001",
+    "messages": ["这个 O20261115001 我要办退货"],
+    "expect": {"state": "AWAIT_CONFIRM"},
+    "steps": [
+      {"state": "AWAIT_CONFIRM", "reply_contains": ["符合七天无理由退货条件", "R-01"], "citation_ids": ["R-01", "R-05"], "no_ticket": true}
+    ],
+    "facts": ["符合七天无理由退货条件"],
+    "forbid_events": ["ticket_create_attempt"],
+    "source_case": "c01",
+    "focus": "正常确认流程：必含事实不属信号规格时行为与精确匹配一致"
+  },
+  {
+    "id": "w10",
+    "name": "建单成功：工单号与时效",
+    "split": "llm_sample5",
+    "user_id": "u_1001",
+    "messages": ["帮我退 O20261115001", "确认"],
+    "expect": {"state": "TICKETED", "ticket": true},
+    "steps": [
+      {"state": "AWAIT_CONFIRM", "no_ticket": true},
+      {"state": "TICKETED", "reply_contains": ["工单已创建", "1-3 个工作日"]}
+    ],
+    "facts": ["工单已创建"],
+    "forbid": [],
+    "require_events": ["ticket_create_attempt"],
+    "source_case": "c02",
+    "focus": "建单流程：工单号由幻觉检测守护，时效数字断言不放宽"
+  }
+]

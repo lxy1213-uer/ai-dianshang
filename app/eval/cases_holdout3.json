@@ -1,0 +1,176 @@
+[
+  {
+    "id": "n01",
+    "name": "留出3｜换说法走完整退货建单",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["这副耳机用不上了，帮我走一下售后流程", "O20261115001", "没问题，提交吧"],
+    "expect": {"state": "TICKETED", "ticket": true},
+    "steps": [{}, {}, {"state": "TICKETED", "reply_contains": ["O20261115001"], "ticket": true}],
+    "facts": ["O20261115001"],
+    "forbid": ["工单创建失败"],
+    "require_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n02",
+    "name": "留出3｜超期背包不自动受理",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["翻出来一个旧背包，想申请售后 O20260901009"],
+    "expect": {"state": "HUMAN", "reply_contains": ["超过"], "ticket": false},
+    "steps": [{"state": "HUMAN", "reply_contains": ["超过"], "no_ticket": true}],
+    "facts": ["超过"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n03",
+    "name": "留出3｜包裹还在路上时先说明拒收",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["手表还在配送中，订单 O20261120005 能办退货吗"],
+    "expect": {"state": "IDLE", "reply_contains": ["签收"]},
+    "steps": [{"state": "IDLE", "reply_contains": ["签收"], "no_ticket": true}],
+    "facts": ["签收"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n04",
+    "name": "留出3｜签收时间空值交人工",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["开衫这笔 O20261119010 想申请退钱"],
+    "expect": {"state": "HUMAN", "reply_contains": ["人工"]},
+    "steps": [{"state": "HUMAN", "reply_contains": ["人工"], "no_ticket": true}],
+    "facts": ["人工"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n05",
+    "name": "留出3｜定制杯子按类目排除",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["杯子上面刻了我的名字，图案不喜欢了 O20261118004"],
+    "expect": {"state": "HUMAN", "citation": true},
+    "steps": [{"state": "HUMAN", "citation_ids": ["R-03"], "no_ticket": true}],
+    "facts": ["定制"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n06",
+    "name": "留出3｜已退款订单拒绝重复申请",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["这笔 O20261114011 的钱还能再申请一次吗"],
+    "expect": {"state": "HUMAN", "reply_contains": ["已退款"]},
+    "steps": [{"state": "HUMAN", "reply_contains": ["已退款"], "no_ticket": true}],
+    "facts": ["已退款"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n07",
+    "name": "留出3｜未发货键盘引导撤单",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["键盘 O20261121007 还没发出去，能不能撤掉"],
+    "expect": {"state": "IDLE", "reply_contains": ["取消订单"]},
+    "steps": [{"state": "IDLE", "reply_contains": ["取消订单"], "no_ticket": true}],
+    "facts": ["取消订单"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n08",
+    "name": "留出3｜质量问题的运费承担方",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["东西坏了寄回去，路费是谁出"],
+    "expect": {"state": "IDLE", "citation": true},
+    "steps": [{"state": "IDLE", "citation_ids": ["R-05"], "no_ticket": true}],
+    "facts": ["R-05"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n09",
+    "name": "留出3｜无理由起算日",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["一周的期限从签收当天开始数吗"],
+    "expect": {"state": "IDLE", "citation": true},
+    "steps": [{"state": "IDLE", "citation_ids": ["R-01"], "no_ticket": true}],
+    "facts": ["R-01"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n10",
+    "name": "留出3｜退款到账时间",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["钱退回来大概多久能看见"],
+    "expect": {"state": "IDLE", "citation": true},
+    "steps": [{"state": "IDLE", "no_ticket": true}],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n11",
+    "name": "留出3｜陌生账号订单不泄露",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["帮我退一下 O20261112008"],
+    "expect": {"state": "AWAIT_ORDER", "reply_contains": ["不在当前登录账号"]},
+    "steps": [{"state": "AWAIT_ORDER", "reply_contains": ["不在当前登录账号"], "no_ticket": true}],
+    "facts": ["不在当前登录账号"],
+    "require_events": ["security_violation"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n12",
+    "name": "留出3｜无条款问题不编造政策",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["你们门店周末开门吗"],
+    "expect": {"ticket": false},
+    "steps": [{"no_ticket": true}],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n13",
+    "name": "留出3｜等待确认时先搁置不建单",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["耳机想退，单号 O20261115001", "先放一边，我回头再想"],
+    "expect": {"state": "AWAIT_CONFIRM", "ticket": false},
+    "steps": [{}, {"state": "AWAIT_CONFIRM", "no_ticket": true}],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n14",
+    "name": "留出3｜核单后主动放弃",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["O20261115001 申请退货", "那算了，不办了"],
+    "expect": {"state": "IDLE", "ticket": false},
+    "steps": [{}, {"state": "IDLE", "no_ticket": true}],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n15",
+    "name": "留出3｜查包裹轨迹",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["帮我看看 O20261120005 现在运到哪儿了"],
+    "expect": {"state": "IDLE", "reply_contains": ["运输中"]},
+    "steps": [{"state": "IDLE", "reply_contains": ["运输中"], "no_ticket": true}],
+    "facts": ["运输中"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "n16",
+    "name": "留出3｜建单后再确认不重复建单",
+    "split": "holdout3",
+    "user_id": "u_1001",
+    "messages": ["耳机不想要了 O20261115001", "确认", "再确认一次"],
+    "expect": {"state": "TICKETED", "ticket": true},
+    "steps": [{}, {"state": "TICKETED", "ticket": true}, {"state": "TICKETED", "reply_contains": ["没有重复建单"], "ticket": true}],
+    "facts": ["没有重复建单"],
+    "require_events": ["ticket_create_attempt"]
+  }
+]

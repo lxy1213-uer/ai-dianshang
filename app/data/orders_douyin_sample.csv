@@ -1,0 +1,5 @@
+﻿order_no,buyer_id,product_name,category,pay_amount,order_status,sign_time,receiver_address,sku_name,platform
+DY20261101001,u_1001,无线蓝牙耳机 Pro,数码配件,299.00,已签收,2026-11-15 10:30,广东省深圳市南山区科技园 1 号,EAR-PRO,抖音
+DY20261101002,u_1001,定制刻字保温杯,定制,89.00,已签收,2026-11-18 10:30,广东省深圳市南山区科技园 2 号,CUP-CUSTOM,抖音
+DY20261101003,u_1001,一盒蓝莓,生鲜,39.90,已签收,2026-11-10 10:30,广东省深圳市南山区科技园 3 号,BLUEBERRY-1,抖音
+DY20261101004,u_1002,羊毛围巾,服饰,199.00,已发货,,浙江省杭州市西湖区文三路 9 号,SCARF-WOOL,抖音

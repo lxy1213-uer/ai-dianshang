@@ -1,0 +1,240 @@
+[
+  {
+    "id": "q01",
+    "name": "留出5｜已退款订单再申请：核单后拒绝，不答成政策",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["这笔 O20261114011 已经退过款了，我想再退一次"],
+    "expect": { "state": "HUMAN", "citation": true },
+    "steps": [
+      {
+        "state": "HUMAN",
+        "citation_ids": ["R-06"],
+        "reply_contains": ["不能重复申请"],
+        "no_ticket": true
+      }
+    ],
+    "facts": ["不能重复申请"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q02",
+    "name": "留出5｜到账后再申请：状态问句走核单而非退款时效",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["O20261114011 的钱到账了，能再申请退款吗"],
+    "expect": { "state": "HUMAN", "citation": true },
+    "steps": [
+      {
+        "state": "HUMAN",
+        "citation_ids": ["R-06"],
+        "reply_contains": ["不能重复申请"],
+        "no_ticket": true
+      }
+    ],
+    "facts": ["不能重复申请"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q03",
+    "name": "留出5｜退款复议无单号：先答规则再要单，不建单",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["之前那笔退款还能再申请一次吗"],
+    "expect": { "state": "AWAIT_ORDER", "citation": true },
+    "steps": [
+      { "state": "AWAIT_ORDER", "reply_contains": ["退款"], "no_ticket": true }
+    ],
+    "facts": ["退款"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q04",
+    "name": "留出5｜退过款复议无单号：引导提供订单号",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["退过款的那单能不能再退一次"],
+    "expect": { "state": "AWAIT_ORDER", "citation": true },
+    "steps": [
+      { "state": "AWAIT_ORDER", "no_ticket": true }
+    ],
+    "facts": [],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q05",
+    "name": "留出5｜运费谁承担：答复写商家承担必须补引 R-05",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["运费到底是商家出还是我自己出"],
+    "expect": { "state": "IDLE", "citation": true },
+    "steps": [
+      {
+        "citation_ids": ["R-05"],
+        "reply_contains": ["运费由商家承担"],
+        "no_ticket": true
+      }
+    ],
+    "facts": ["运费由商家承担"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q06",
+    "name": "留出5｜缺陷问运费：R-02 正文带运费结论也要补引 R-05",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["买的水果坏了，寄回去的邮费算谁的"],
+    "expect": { "state": "IDLE", "citation": true },
+    "steps": [
+      {
+        "citation_ids": ["R-02", "R-05"],
+        "reply_contains": ["运费由商家承担"],
+        "no_ticket": true
+      }
+    ],
+    "facts": ["运费由商家承担"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q07",
+    "name": "留出5｜真政策问句防误伤：退款到账时长仍是政策答复",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["退款多久才能到账"],
+    "expect": { "state": "IDLE", "citation": true },
+    "steps": [
+      {
+        "citation_ids": ["R-06"],
+        "reply_contains": ["到账"],
+        "no_ticket": true
+      }
+    ],
+    "facts": ["到账"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q08",
+    "name": "留出5｜撤单防误伤：只引 R-04，不补 R-01/R-08",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["撤掉 O20261121007 这个订单"],
+    "expect": { "state": "IDLE", "citation": true },
+    "steps": [
+      {
+        "citation_ids": ["R-04"],
+        "reply_contains": ["取消订单"],
+        "no_ticket": true
+      }
+    ],
+    "facts": ["取消订单"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q09",
+    "name": "留出5｜定制刻字预答：类目排除走人工",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["杯子上印了我名字，这个我不想要 O20261118004"],
+    "expect": { "state": "HUMAN", "citation": true },
+    "steps": [
+      { "state": "HUMAN", "citation_ids": ["R-03"], "no_ticket": true }
+    ],
+    "facts": ["定制"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q10",
+    "name": "留出5｜生鲜发霉：质量通道预答",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["买到的一盒蓝莓发霉了"],
+    "expect": { "state": "AWAIT_ORDER", "citation": true },
+    "steps": [
+      { "state": "AWAIT_ORDER", "citation_ids": ["R-02", "R-05"], "reply_contains": ["质量问题"], "no_ticket": true }
+    ],
+    "facts": ["质量问题"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q11",
+    "name": "留出5｜超期口语：认单提议但不替用户办理",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["那件羊毛衫签收第九天了还能退吗"],
+    "expect": { "state": "AWAIT_ORDER", "citation": true },
+    "steps": [
+      { "state": "AWAIT_ORDER", "no_ticket": true }
+    ],
+    "facts": [],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q12",
+    "name": "留出5｜物流查询：不带政策引用",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["O20261115001 的快递到哪了"],
+    "expect": { "state": "IDLE" },
+    "steps": [
+      { "reply_contains": ["已签收"], "no_ticket": true }
+    ],
+    "facts": ["已签收"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q13",
+    "name": "留出5｜未拆封闲置：口语诉求走无理由",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["小样香水还没拆封，用不上了"],
+    "expect": { "state": "AWAIT_ORDER", "citation": true },
+    "steps": [
+      { "state": "AWAIT_ORDER", "no_ticket": true }
+    ],
+    "facts": [],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q14",
+    "name": "留出5｜缺陷超期：走质量通道不受七天限制",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["耳机坏了，签收第八天还能换吗"],
+    "expect": { "state": "AWAIT_ORDER", "citation": true },
+    "steps": [
+      { "state": "AWAIT_ORDER", "citation_ids": ["R-02"], "reply_contains": ["质量问题"], "no_ticket": true }
+    ],
+    "facts": ["质量问题"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q15",
+    "name": "留出5｜起算规则咨询：政策答复不误判办理",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["七天无理由从哪天开始算"],
+    "expect": { "state": "IDLE", "citation": true },
+    "steps": [
+      { "citation_ids": ["R-01"], "no_ticket": true }
+    ],
+    "facts": [],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "q16",
+    "name": "留出5｜护栏防误伤：只问到账时长不触发状态型再申请",
+    "split": "holdout5",
+    "user_id": "u_1001",
+    "messages": ["我的退款还没到账，要等多久"],
+    "expect": { "state": "IDLE", "citation": true },
+    "steps": [
+      {
+        "citation_ids": ["R-06"],
+        "reply_contains": ["到账"],
+        "no_ticket": true
+      }
+    ],
+    "facts": ["到账"],
+    "forbid_events": ["ticket_create_attempt"]
+  }
+]

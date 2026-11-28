@@ -1,0 +1,5 @@
+# 本地替身环境需要装的可选依赖（其余能力均为纯标准库）
+# 安装：pip install -r requirements.txt -r requirements-local.txt
+
+redis
+psycopg[binary]

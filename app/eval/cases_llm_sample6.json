@@ -1,0 +1,397 @@
+[
+  {
+    "id": "x01",
+    "name": "超期退货：禁词断言要挡住改写说法",
+    "split": "llm_sample6",
+    "user_id": "u_1001",
+    "messages": [
+      "麻烦帮我把 O20261115002 退了"
+    ],
+    "expect": {
+      "state": "HUMAN",
+      "reply_contains": [
+        "已超过"
+      ]
+    },
+    "steps": [
+      {
+        "state": "HUMAN",
+        "reply_contains": [
+          "已超过"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "已超过"
+    ],
+    "forbid": [
+      "工单已创建",
+      "符合七天无理由退货条件"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "c03",
+    "focus": "禁词侧：不建单场景下「工单已创建」及其改写（已成功创建/已为您创建）都必须算命中"
+  },
+  {
+    "id": "x02",
+    "name": "建单成功：无理由通道（完成型规格）",
+    "split": "llm_sample6",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261115001 耳机想退，包装都在",
+      "确认"
+    ],
+    "expect": {
+      "state": "TICKETED",
+      "ticket": true
+    },
+    "steps": [
+      {
+        "state": "AWAIT_CONFIRM",
+        "reply_contains": [
+          "符合七天无理由退货条件",
+          "运费需自理"
+        ],
+        "citation_ids": [
+          "R-01",
+          "R-05"
+        ],
+        "no_ticket": true
+      },
+      {
+        "state": "TICKETED",
+        "reply_contains": [
+          "工单已创建",
+          "1-3 个工作日"
+        ]
+      }
+    ],
+    "facts": [
+      "工单已创建"
+    ],
+    "forbid": [
+      "没有查到订单"
+    ],
+    "require_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "c01",
+    "focus": "完成型规格主用例：模板「售后工单已创建」被润色成「已成功创建」时仍须判定为已建单"
+  },
+  {
+    "id": "x03",
+    "name": "建单成功：个护未拆封（完成型规格）",
+    "split": "llm_sample6",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261121012 香水没拆封，能退吗",
+      "确认"
+    ],
+    "expect": {
+      "state": "TICKETED",
+      "ticket": true
+    },
+    "steps": [
+      {
+        "state": "AWAIT_CONFIRM",
+        "reply_contains": [
+          "符合七天无理由退货条件",
+          "还剩 6 天"
+        ],
+        "no_ticket": true
+      },
+      {
+        "state": "TICKETED",
+        "reply_contains": [
+          "工单已创建",
+          "1 个工作日"
+        ]
+      }
+    ],
+    "facts": [
+      "工单已创建"
+    ],
+    "forbid": [],
+    "require_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "c01",
+    "focus": "完成型规格 + 剩余天数数字断言（数字不参与放宽）"
+  },
+  {
+    "id": "x04",
+    "name": "建单成功：质量问题通道（运费结构短语）",
+    "split": "llm_sample6",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261110006 蓝莓坏了一半",
+      "确认"
+    ],
+    "expect": {
+      "state": "TICKETED",
+      "ticket": true
+    },
+    "steps": [
+      {
+        "state": "AWAIT_CONFIRM",
+        "reply_contains": [
+          "符合质量问题退货条件",
+          "运费由商家承担"
+        ],
+        "citation_ids": [
+          "R-02"
+        ],
+        "no_ticket": true
+      },
+      {
+        "state": "TICKETED",
+        "reply_contains": [
+          "工单已创建",
+          "质量问题退货",
+          "1-3 个工作日"
+        ]
+      }
+    ],
+    "facts": [
+      "工单已创建"
+    ],
+    "forbid": [],
+    "require_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "c14",
+    "focus": "完成型规格与结构性短语并存：工单确认可放宽措辞，运费承担方仍须原样保留"
+  },
+  {
+    "id": "x05",
+    "name": "未签收订单：查物流不建单",
+    "split": "llm_sample6",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261120005 一直没送到，我拒收"
+    ],
+    "expect": {
+      "state": "IDLE",
+      "reply_contains": [
+        "未签收"
+      ]
+    },
+    "steps": [
+      {
+        "state": "IDLE",
+        "reply_contains": [
+          "未签收",
+          "智能手表 S2"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "未签收"
+    ],
+    "forbid": [
+      "工单已创建",
+      "符合七天无理由退货条件"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "c04",
+    "focus": "禁词侧对照：查单话术里的「已发货 / 未签收」不得被误判成建单完成"
+  },
+  {
+    "id": "x06",
+    "name": "建单成功：服饰通道（完成型规格）",
+    "split": "llm_sample6",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261116013 这件衣服退掉",
+      "确认"
+    ],
+    "expect": {
+      "state": "TICKETED",
+      "ticket": true
+    },
+    "steps": [
+      {
+        "state": "AWAIT_CONFIRM",
+        "reply_contains": [
+          "符合七天无理由退货条件",
+          "还剩 3 天"
+        ],
+        "no_ticket": true
+      },
+      {
+        "state": "TICKETED",
+        "reply_contains": [
+          "工单已创建",
+          "1-3 个工作日"
+        ]
+      }
+    ],
+    "facts": [
+      "工单已创建"
+    ],
+    "forbid": [],
+    "require_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "c01",
+    "focus": "完成型规格重复验证：同一事实在第三个订单上仍须被识别"
+  },
+  {
+    "id": "x07",
+    "name": "查无订单：新措辞走信号组合",
+    "split": "llm_sample6",
+    "user_id": "u_1001",
+    "messages": [
+      "O88888888888 退一下"
+    ],
+    "expect": {
+      "state": "AWAIT_ORDER",
+      "reply_contains": [
+        "没有查到订单"
+      ]
+    },
+    "steps": [
+      {
+        "state": "AWAIT_ORDER",
+        "reply_contains": [
+          "没有查到订单",
+          "O88888888888"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "没有查到订单"
+    ],
+    "forbid": [
+      "工单已创建"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "c07",
+    "focus": "B5 信号组回归：改造完成型分支后，否定极性类断言行为不变"
+  },
+  {
+    "id": "x08",
+    "name": "已退款订单：拒绝重复申请",
+    "split": "llm_sample6",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261114011 还能再退一次吗"
+    ],
+    "expect": {
+      "state": "HUMAN",
+      "reply_contains": [
+        "已退款"
+      ]
+    },
+    "steps": [
+      {
+        "state": "HUMAN",
+        "reply_contains": [
+          "已退款",
+          "不能重复申请"
+        ],
+        "citation_ids": [
+          "R-06"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "已退款",
+      "不能重复申请"
+    ],
+    "forbid": [
+      "工单已创建",
+      "符合七天无理由退货条件"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "c16",
+    "focus": "B5 信号组回归：已退款 / 不能重复申请两条结论仍按极性+动作命中"
+  },
+  {
+    "id": "x09",
+    "name": "定制类目：不支持无理由，转人工",
+    "split": "llm_sample6",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261118004 保温杯刻字了能退吗"
+    ],
+    "expect": {
+      "state": "HUMAN",
+      "reply_contains": [
+        "不支持七天无理由退货"
+      ]
+    },
+    "steps": [
+      {
+        "state": "HUMAN",
+        "reply_contains": [
+          "不支持七天无理由退货"
+        ],
+        "citation_ids": [
+          "R-03"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "不支持七天无理由退货"
+    ],
+    "forbid": [
+      "工单已创建",
+      "符合七天无理由退货条件"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "c05",
+    "focus": "禁词侧反向验证：回复里出现「不支持七天无理由退货」时，禁词「符合七天无理由退货条件」不得误判命中"
+  },
+  {
+    "id": "x10",
+    "name": "政策问答：质量问题 15 天数字断言",
+    "split": "llm_sample6",
+    "user_id": "u_1001",
+    "messages": [
+      "质量问题退货多久内可以申请"
+    ],
+    "expect": {
+      "state": "IDLE",
+      "reply_contains": [
+        "15 天"
+      ]
+    },
+    "steps": [
+      {
+        "state": "IDLE",
+        "reply_contains": [
+          "15 天",
+          "R-02"
+        ],
+        "citation_ids": [
+          "R-02"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "15 天"
+    ],
+    "forbid": [
+      "工单已创建"
+    ],
+    "source_case": "c10",
+    "focus": "数字与条款号不参与任何放宽，作为完成型规格改造后的对照锚点"
+  }
+]

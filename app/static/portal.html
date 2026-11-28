@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>自助进度 · 小奈售后</title>
+<style>
+  :root {
+    --paper: #f2efe6; --card: #ffffff; --panel: #fbfaf6;
+    --ink: #16161a; --ink-2: #46443d; --muted: #8b8677;
+    --line: #e6e0d3; --line-soft: #efeade;
+    --blue: #2a47c6; --blue-soft: #eef1ff;
+    --green: #1f7a53; --green-soft: #e9f6ef;
+    --amber: #a2701a; --amber-soft: #fdf3e0;
+    --red: #b23b30; --red-soft: #fdeeec;
+    --radius: 14px; --shadow: 0 1px 2px rgba(30,26,15,.04), 0 8px 24px -12px rgba(30,26,15,.18);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 13px; }
+  .top { background: var(--card); border-bottom: 1px solid var(--line); padding: 14px 28px;
+    display: flex; align-items: center; gap: 16px; }
+  .top h1 { margin: 0; font-size: 16px; }
+  .top nav { margin-left: auto; display: flex; gap: 8px; }
+  .top nav a { text-decoration: none; color: var(--ink-2); padding: 6px 12px; border-radius: 8px; font-size: 12px; }
+  .top nav a.on, .top nav a:hover { background: var(--blue-soft); color: var(--blue); }
+  .wrap { max-width: 1100px; margin: 24px auto; padding: 0 24px; }
+  .intro { background: var(--blue-soft); border: 1px solid #d8dffe; border-radius: var(--radius);
+    padding: 14px 18px; margin-bottom: 18px; color: var(--blue); font-size: 12.5px; line-height: 1.7; }
+  .bar { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .bar label { color: var(--muted); font-size: 11px; }
+  .bar input { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px;
+    font-size: 12px; font-family: inherit; background: var(--card); color: var(--ink); }
+  .bar button { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--blue);
+    background: var(--blue); color: #fff; cursor: pointer; font-size: 12px; font-family: inherit; }
+  .bar .who { margin-left: auto; color: var(--muted); font-size: 11px; }
+  .layout { display: grid; grid-template-columns: 400px 1fr; gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow: hidden; }
+  .card h2 { margin: 0; padding: 14px 18px; font-size: 13px; border-bottom: 1px solid var(--line-soft); }
+  .list { max-height: 560px; overflow-y: auto; }
+  .item { padding: 13px 18px; border-bottom: 1px solid var(--line-soft); cursor: pointer; }
+  .item:hover { background: var(--panel); }
+  .item.sel { background: var(--blue-soft); }
+  .item .row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .item .tid { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 12px; }
+  .item .meta { color: var(--muted); font-size: 11px; line-height: 1.7; }
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; margin-left: auto; }
+  .badge.CREATED, .badge.REVIEWING { background: var(--amber-soft); color: var(--amber); }
+  .badge.APPROVED, .badge.RECEIVED { background: var(--blue-soft); color: var(--blue); }
+  .badge.REFUNDED { background: var(--green-soft); color: var(--green); }
+  .badge.REJECTED, .badge.CLOSED { background: var(--red-soft); color: var(--red); }
+  .detail { padding: 18px; min-height: 300px; }
+  .empty { color: var(--muted); text-align: center; padding: 80px 20px; }
+  .hero { border-bottom: 1px solid var(--line-soft); padding-bottom: 14px; margin-bottom: 16px; }
+  .hero .tid { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .hero .sub { color: var(--muted); font-size: 11px; margin-top: 5px; line-height: 1.7; }
+  .status-line { display: flex; align-items: center; gap: 10px; margin: 10px 0 16px; }
+  .status-line strong { font-size: 14px; }
+  .next { background: var(--green-soft); border: 1px solid #d3ecdf; border-radius: 8px;
+    padding: 10px 12px; color: var(--green); font-size: 12px; line-height: 1.7; margin-bottom: 16px; }
+  .timeline { margin-left: 6px; }
+  .tl { position: relative; padding: 0 0 16px 22px; border-left: 2px solid var(--line); }
+  .tl:last-child { border-left-color: transparent; padding-bottom: 0; }
+  .tl::before { content: ""; position: absolute; left: -6px; top: 2px; width: 10px; height: 10px;
+    border-radius: 50%; background: var(--card); border: 2px solid var(--blue); }
+  .tl .t { font-size: 12px; font-weight: 600; }
+  .tl .m { color: var(--muted); font-size: 11px; margin-top: 3px; line-height: 1.6; }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(12px);
+    background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 12px;
+    opacity: 0; transition: .2s; pointer-events: none; z-index: 99; }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>自助进度查询</h1>
+  <nav>
+    <a href="/">客服会话</a>
+    <a href="/diagnose">售后诊断</a>
+    <a class="on" href="/portal">自助进度</a>
+    <a href="/desk">坐席工作台</a>
+    <a href="/metrics">埋点漏斗</a>
+  </nav>
+</div>
+<div class="wrap">
+  <div class="intro">
+    不用和客服反复对话，也能查看你名下所有售后工单的当前状态、完整流转时间线和下一步说明。
+    demo 模式可切换 user_id 体验隔离效果；开启签名鉴权后只能看到自己账号的工单。
+  </div>
+  <div class="bar">
+    <label for="userId">用户 ID</label>
+    <input id="userId" value="u_1001" maxlength="32" />
+    <button id="reloadBtn">查询进度</button>
+    <span class="who" id="who">当前：u_1001</span>
+  </div>
+  <div class="layout">
+    <div class="card">
+      <h2>我的工单</h2>
+      <div class="list" id="ticketList"><div class="empty">加载中…</div></div>
+    </div>
+    <div class="card">
+      <h2>进度详情</h2>
+      <div class="detail" id="detail"><div class="empty">从左侧选择一条工单</div></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// 嵌入统一工作台时隐藏自带导航（父页面已有 tab）
+if (new URLSearchParams(location.search).get("embed") === "1") {
+  const top = document.querySelector(".top");
+  if (top) top.style.display = "none";
+  const wrap = document.querySelector(".wrap");
+  if (wrap) wrap.style.marginTop = "18px";
+}
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+// 身份：signed 模式用 localStorage 里的用户 token，demo 模式用输入框的 user_id。
+const userToken = () => localStorage.getItem("agn.authToken") || "";
+let signedMode = false, tickets = [], selected = null;
+
+function authHeaders() {
+  return userToken() ? { Authorization: "Bearer " + userToken() } : {};
+}
+function toast(text) { const el=$("toast"); el.textContent=text; el.classList.add("on"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("on"),2200); }
+
+async function detectMode() {
+  try {
+    const h = await (await fetch("/api/health")).json();
+    signedMode = h.auth_mode === "signed";
+    if (signedMode) {
+      $("userId").disabled = true;
+      $("who").textContent = "签名模式：仅可查看本人账号";
+    }
+  } catch (e) { /* 默认 demo */ }
+}
+
+async function loadTickets() {
+  const uid = $("userId").value.trim() || "u_1001";
+  const url = `/api/portal/tickets?user_id=${encodeURIComponent(uid)}`;
+  try {
+    const r = await fetch(url, { headers: authHeaders() });
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      $("ticketList").innerHTML = `<div class="empty">查询失败：${esc(d.detail || r.status)}</div>`;
+      return;
+    }
+    const d = await r.json();
+    tickets = d.tickets || [];
+    $("who").textContent = signedMode ? "签名模式：仅可查看本人账号" : `当前：${d.user_id}`;
+    renderList();
+    if (tickets.length) select(tickets[0].ticket_id);
+    else $("detail").innerHTML = '<div class="empty">该用户暂无售后工单</div>';
+  } catch (e) {
+    $("ticketList").innerHTML = '<div class="empty">网络错误，请重试</div>';
+  }
+}
+
+function renderList() {
+  if (!tickets.length) { $("ticketList").innerHTML = '<div class="empty">该用户暂无售后工单</div>'; return; }
+  $("ticketList").innerHTML = tickets.map((t) => `
+    <div class="item ${selected === t.ticket_id ? "sel" : ""}" data-id="${esc(t.ticket_id)}">
+      <div class="row1">
+        <span class="tid">${esc(t.ticket_id)}</span>
+        <span class="badge ${esc(t.status)}">${esc(statusLabel(t.status))}</span>
+      </div>
+      <div class="meta">订单 ${esc(t.order_id)} · ${esc(t.reason)}<br>更新于 ${esc(t.updated_at)}</div>
+    </div>`).join("");
+  document.querySelectorAll("#ticketList .item").forEach((el) => {
+    el.addEventListener("click", () => select(el.dataset.id));
+  });
+}
+
+const LABELS = {
+  CREATED: "已建单", REVIEWING: "审核中", APPROVED: "审核通过", RECEIVED: "已收到退货",
+  REFUNDED: "已退款", REJECTED: "已驳回", CLOSED: "已关闭",
+};
+function statusLabel(s) { return LABELS[s] || s; }
+
+async function select(ticketId) {
+  selected = ticketId;
+  renderList();
+  const uid = $("userId").value.trim() || "u_1001";
+  try {
+    const r = await fetch(`/api/tickets/${encodeURIComponent(ticketId)}?user_id=${encodeURIComponent(uid)}`, { headers: authHeaders() });
+    if (!r.ok) { const d = await r.json().catch(() => ({})); $("detail").innerHTML = `<div class="empty">${esc(d.detail || "无法加载")}</div>`; return; }
+    const d = await r.json();
+    renderDetail(d);
+  } catch (e) { $("detail").innerHTML = '<div class="empty">网络错误</div>'; }
+}
+
+function renderDetail(d) {
+  const tl = (d.timeline || []).map((e) => {
+    const p = e.payload || {};
+    const from = p.from ? statusLabel(p.from) + " → " : "";
+    return `
+    <div class="tl">
+      <div class="t">${esc(from)}${esc(p.to ? statusLabel(p.to) : "状态更新")}</div>
+      <div class="m">${esc(p.operator ? "操作人：" + p.operator + " · " : "")}${esc(e.created_at || "")}${p.version ? " · v" + esc(p.version) : ""}</div>
+    </div>`;
+  }).join("");
+  const startNode = `<div class="tl"><div class="t">${esc(statusLabel("CREATED"))}</div><div class="m">建单于 ${esc(d.created_at)}</div></div>`;
+  $("detail").innerHTML = `
+    <div class="hero">
+      <div class="tid">${esc(d.ticket_id)}</div>
+      <div class="sub">订单 ${esc(d.order_id)} · ${esc(d.reason)} · 建单于 ${esc(d.created_at)}</div>
+    </div>
+    <div class="status-line">
+      <span class="badge ${esc(d.status)}">${esc(d.status_label || statusLabel(d.status))}</span>
+      <strong>${esc(d.status_label || statusLabel(d.status))}</strong>
+      ${d.is_terminal ? '<span style="color:var(--muted);font-size:11px">（终态）</span>' : ""}
+    </div>
+    <div class="next">下一步：${esc(d.next_step || "请留意进度更新")}</div>
+    <div style="color:var(--muted);font-size:11px;margin-bottom:10px">流转时间线</div>
+    <div class="timeline">${startNode}${tl}</div>
+  `;
+}
+
+$("reloadBtn").addEventListener("click", loadTickets);
+$("userId").addEventListener("keydown", (e) => { if (e.key === "Enter") loadTickets(); });
+(async function init() { await detectMode(); await loadTickets(); })();
+</script>
+</body>
+</html>

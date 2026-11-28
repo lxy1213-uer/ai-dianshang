@@ -1,0 +1,413 @@
+[
+  {
+    "id": "t01",
+    "name": "留出｜口语化「退了」走完整退货",
+    "split": "llm_sample2",
+    "user_id": "u_1001",
+    "messages": [
+      "我想把耳机退了",
+      "O20261115001",
+      "确认"
+    ],
+    "expect": {
+      "state": "TICKETED",
+      "ticket": true
+    },
+    "steps": [
+      {},
+      {},
+      {
+        "state": "TICKETED",
+        "reply_contains": [
+          "售后工单已创建",
+          "O20261115001"
+        ],
+        "ticket": true
+      }
+    ],
+    "facts": [
+      "O20261115001"
+    ],
+    "forbid": [
+      "工单已创建失败"
+    ],
+    "source_case": "h01",
+    "focus": "口语化「退了」走完整退货（多轮状态机 / 确认建单）"
+  },
+  {
+    "id": "t02",
+    "name": "留出｜「能退吗 + 订单号」应识别为退货核单",
+    "split": "llm_sample2",
+    "user_id": "u_1001",
+    "messages": [
+      "能退吗 O20261115001"
+    ],
+    "expect": {
+      "state": "AWAIT_CONFIRM"
+    },
+    "steps": [
+      {
+        "state": "AWAIT_CONFIRM",
+        "reply_contains": [
+          "今天到期",
+          "O20261115001"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "O20261115001"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "h02",
+    "focus": "「能退吗 + 订单号」应识别为退货核单（意图分流）"
+  },
+  {
+    "id": "t03",
+    "name": "留出｜质量问题 + 不想要了，识别退货",
+    "split": "llm_sample2",
+    "user_id": "u_1001",
+    "messages": [
+      "耳机坏了我不想要了"
+    ],
+    "expect": {
+      "state": "AWAIT_ORDER"
+    },
+    "steps": [
+      {
+        "state": "AWAIT_ORDER",
+        "intent": "return",
+        "reply_contains": [
+          "订单号"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "订单号"
+    ],
+    "source_case": "h03",
+    "focus": "质量问题 + 纯口语「不想要了」（B1 失败同款能力点：口语召回）"
+  },
+  {
+    "id": "t04",
+    "name": "留出｜「查一下退货期限」答政策",
+    "split": "llm_sample2",
+    "user_id": "u_1001",
+    "messages": [
+      "帮我查一下退货期限"
+    ],
+    "expect": {
+      "state": "IDLE",
+      "citation": true
+    },
+    "steps": [
+      {
+        "state": "IDLE",
+        "intent": "policy",
+        "reply_contains": [
+          "R-01",
+          "7 天"
+        ],
+        "citation_ids": [
+          "R-01"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "R-01",
+      "7 天"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "h04",
+    "focus": "「查一下退货期限」答政策（B1 失败同款能力点：数字事实断言）"
+  },
+  {
+    "id": "t05",
+    "name": "留出｜越权订单不泄露他人信息",
+    "split": "llm_sample2",
+    "user_id": "u_1001",
+    "messages": [
+      "我想退个东西",
+      "O20261112008"
+    ],
+    "expect": {
+      "state": "AWAIT_ORDER"
+    },
+    "steps": [
+      {},
+      {
+        "state": "AWAIT_ORDER",
+        "reply_contains": [
+          "没有权限"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "没有权限"
+    ],
+    "forbid": [
+      "上海市",
+      "北京市",
+      "¥399.00",
+      "便携蓝牙音箱"
+    ],
+    "require_events": [
+      "security_violation"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "h10",
+    "focus": "越权：他人订单不得办理或泄露信息"
+  },
+  {
+    "id": "t06",
+    "name": "到期当天：判定可退并提示今天到期",
+    "split": "llm_sample2",
+    "user_id": "u_1001",
+    "messages": [
+      "我要退货",
+      "O20261115001"
+    ],
+    "expect": {
+      "state": "AWAIT_CONFIRM",
+      "citation": true,
+      "reply_contains": [
+        "今天到期"
+      ]
+    },
+    "steps": [
+      {
+        "state": "AWAIT_ORDER",
+        "intent": "return",
+        "reply_contains": [
+          "订单号"
+        ],
+        "no_ticket": true
+      },
+      {
+        "state": "AWAIT_CONFIRM",
+        "reply_contains": [
+          "O20261115001",
+          "今天到期",
+          "2026-11-22"
+        ],
+        "citation_ids": [
+          "R-01"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "O20261115001",
+      "2026-11-22"
+    ],
+    "forbid": [
+      "工单已创建",
+      "没有创建工单"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "c02",
+    "focus": "到期当天：判定可退并提示今天到期（数字事实）"
+  },
+  {
+    "id": "t07",
+    "name": "换单：确认对象更新为新订单，旧令牌失效",
+    "split": "llm_sample2",
+    "user_id": "u_1001",
+    "messages": [
+      "我要退货",
+      "O20261115001",
+      "换成 O20261116013"
+    ],
+    "expect": {
+      "state": "AWAIT_CONFIRM",
+      "order_id": "O20261116013"
+    },
+    "steps": [
+      {
+        "state": "AWAIT_ORDER",
+        "reply_contains": [
+          "订单号"
+        ],
+        "no_ticket": true
+      },
+      {
+        "state": "AWAIT_CONFIRM",
+        "reply_contains": [
+          "O20261115001",
+          "今天到期"
+        ],
+        "citation_ids": [
+          "R-01"
+        ],
+        "no_ticket": true
+      },
+      {
+        "state": "AWAIT_CONFIRM",
+        "reply_contains": [
+          "O20261116013",
+          "¥139.00",
+          "2026-11-25"
+        ],
+        "citation_ids": [
+          "R-01"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "O20261116013"
+    ],
+    "forbid": [
+      "O20261115001",
+      "工单已创建"
+    ],
+    "require_events": [
+      "confirm_invalidated"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "c09",
+    "focus": "换单：确认对象更新，旧令牌失效（多轮状态机）"
+  },
+  {
+    "id": "t08",
+    "name": "转人工：携带上下文交接",
+    "split": "llm_sample2",
+    "user_id": "u_1001",
+    "messages": [
+      "转人工"
+    ],
+    "expect": {
+      "state": "HUMAN",
+      "reply_contains": [
+        "转人工"
+      ]
+    },
+    "steps": [
+      {
+        "state": "HUMAN",
+        "intent": "human",
+        "reply_contains": [
+          "转人工",
+          "交接信息"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "交接信息"
+    ],
+    "forbid": [
+      "工单已创建"
+    ],
+    "require_events": [
+      "handoff"
+    ],
+    "source_case": "c12",
+    "focus": "转人工：携带上下文交接"
+  },
+  {
+    "id": "t09",
+    "name": "质量问题：走 15 天质量问题通道，运费商家承担",
+    "split": "llm_sample2",
+    "user_id": "u_1001",
+    "messages": [
+      "耳机有破损，我要退货 O20261115001"
+    ],
+    "expect": {
+      "state": "AWAIT_CONFIRM",
+      "citation": true,
+      "reply_contains": [
+        "质量"
+      ]
+    },
+    "steps": [
+      {
+        "state": "AWAIT_CONFIRM",
+        "intent": "return",
+        "reply_contains": [
+          "质量问题退货条件",
+          "R-02",
+          "运费由商家承担"
+        ],
+        "citation_ids": [
+          "R-02"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "R-02",
+      "质量问题"
+    ],
+    "forbid": [
+      "七天无理由退货条件",
+      "运费需自理"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "c14",
+    "focus": "质量问题走 15 天通道，运费商家承担（数字事实）"
+  },
+  {
+    "id": "t10",
+    "name": "未发货订单：引导取消而不是退货",
+    "split": "llm_sample2",
+    "user_id": "u_1001",
+    "messages": [
+      "我要退货",
+      "O20261121007"
+    ],
+    "expect": {
+      "state": "IDLE",
+      "reply_contains": [
+        "取消订单"
+      ]
+    },
+    "steps": [
+      {
+        "state": "AWAIT_ORDER",
+        "reply_contains": [
+          "订单号"
+        ],
+        "no_ticket": true
+      },
+      {
+        "state": "IDLE",
+        "reply_contains": [
+          "取消订单",
+          "全额退款"
+        ],
+        "citation_ids": [
+          "R-04"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "取消订单"
+    ],
+    "forbid": [
+      "工单已创建",
+      "符合七天无理由退货条件"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ],
+    "source_case": "c15",
+    "focus": "未发货订单：引导取消而不是退货"
+  }
+]

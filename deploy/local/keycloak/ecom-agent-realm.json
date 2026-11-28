@@ -1,0 +1,129 @@
+{
+  "realm": "ecom-agent",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "verifyEmail": false,
+  "roles": {
+    "realm": [
+      {"name": "viewer", "description": "只读用户"},
+      {"name": "agent", "description": "售后坐席"},
+      {"name": "supervisor", "description": "主管：可退款/转派"},
+      {"name": "admin", "description": "管理员：可切模型"}
+    ],
+    "client": {
+      "ecom-agent": []
+    }
+  },
+  "clients": [
+    {
+      "clientId": "ecom-agent",
+      "name": "Ecom Agent Local",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8000/*",
+        "http://127.0.0.1:8000/*",
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": ["+"],
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "email"],
+      "optionalClientScopes": ["address", "phone", "offline_access", "microprofile-jwt"],
+      "protocolMappers": [
+        {
+          "name": "role",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "",
+            "claim.name": "role",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "introspection.token.claim": "true",
+            "multivalued": "false"
+          }
+        },
+        {
+          "name": "user_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "user_id",
+            "claim.name": "user_id",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "multivalued": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "u_1001",
+      "username": "agent01",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Agent",
+      "lastName": "One",
+      "email": "agent01@example.com",
+      "credentials": [{"type": "password", "value": "pwd", "temporary": false}],
+      "realmRoles": ["agent"],
+      "attributes": {"user_id": ["u_1001"]}
+    },
+    {
+      "id": "u_1002",
+      "username": "boss01",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Boss",
+      "lastName": "One",
+      "email": "boss01@example.com",
+      "credentials": [{"type": "password", "value": "pwd", "temporary": false}],
+      "realmRoles": ["supervisor"],
+      "attributes": {"user_id": ["u_1002"]}
+    },
+    {
+      "id": "u_1003",
+      "username": "viewer01",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Viewer",
+      "lastName": "One",
+      "email": "viewer01@example.com",
+      "credentials": [{"type": "password", "value": "pwd", "temporary": false}],
+      "realmRoles": ["viewer"],
+      "attributes": {"user_id": ["u_1003"]}
+    },
+    {
+      "id": "u_1004",
+      "username": "admin01",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "One",
+      "email": "admin01@example.com",
+      "credentials": [{"type": "password", "value": "pwd", "temporary": false}],
+      "realmRoles": ["admin"],
+      "attributes": {"user_id": ["u_1004"]}
+    }
+  ]
+}

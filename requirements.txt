@@ -1,0 +1,11 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.6
+httpx>=0.26
+pytest>=8.0
+
+# --- 可选外部依赖：仅接入真实服务时按需安装，默认零配置演示不需要 ---
+# Redis 多实例限流：          pip install redis
+# Postgres 租约锁：           pip install 'psycopg[binary]'
+# 说明：OIDC 验签 / embedding / 企微通知 / 回调验签 / 对账均为纯标准库实现，
+#       不引入 cryptography / PyJWT / numpy / 向量库硬依赖。

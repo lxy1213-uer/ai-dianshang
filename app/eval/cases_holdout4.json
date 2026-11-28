@@ -1,0 +1,427 @@
+[
+  {
+    "id": "p01",
+    "name": "留出4｜闲置口吻走无理由退货",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "这双跑鞋闲置好久了，能不能走售后"
+    ],
+    "expect": {
+      "state": "AWAIT_ORDER",
+      "citation": true
+    },
+    "steps": [
+      {
+        "state": "AWAIT_ORDER",
+        "reply_contains": [
+          "七天无理由"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "七天无理由"
+    ],
+    "forbid": [
+      "工单已创建"
+    ]
+  },
+  {
+    "id": "p02",
+    "name": "留出4｜未发货撤单按 R-04 引导",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "先别发了，帮我撤掉这单 O20261121007"
+    ],
+    "expect": {
+      "state": "IDLE",
+      "reply_contains": [
+        "取消订单"
+      ]
+    },
+    "steps": [
+      {
+        "state": "IDLE",
+        "citation_ids": [
+          "R-04"
+        ],
+        "reply_contains": [
+          "取消订单"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "取消订单"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "p03",
+    "name": "留出4｜坏水果按质量通道预答",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "收到的一盒草莓全都烂了"
+    ],
+    "expect": {
+      "state": "AWAIT_ORDER",
+      "citation": true
+    },
+    "steps": [
+      {
+        "state": "AWAIT_ORDER",
+        "reply_contains": [
+          "质量问题"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "质量问题"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "p04",
+    "name": "留出4｜缺陷陈述 + 运费问句仍答政策",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "水果烂了寄回去，路费算谁的"
+    ],
+    "expect": {
+      "state": "IDLE",
+      "citation": true
+    },
+    "steps": [
+      {
+        "citation_ids": [
+          "R-02",
+          "R-05"
+        ],
+        "reply_contains": [
+          "运费由商家承担"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "运费由商家承担"
+    ]
+  },
+  {
+    "id": "p05",
+    "name": "留出4｜刻字定制按类目排除",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "杯子上印了我名字，这个样式我不喜欢 O20261118004"
+    ],
+    "expect": {
+      "state": "HUMAN",
+      "citation": true
+    },
+    "steps": [
+      {
+        "state": "HUMAN",
+        "citation_ids": [
+          "R-03"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "定制"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "p06",
+    "name": "留出4｜口语换说法走完建单",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "这条围巾用不着了，帮我走售后",
+      "O20261115001",
+      "好的，提交"
+    ],
+    "expect": {
+      "state": "TICKETED",
+      "ticket": true
+    },
+    "steps": [
+      {},
+      {},
+      {
+        "state": "TICKETED",
+        "reply_contains": [
+          "O20261115001"
+        ],
+        "ticket": true
+      }
+    ],
+    "facts": [
+      "O20261115001"
+    ],
+    "forbid": [
+      "工单创建失败"
+    ],
+    "require_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "p07",
+    "name": "留出4｜已退款订单拒绝再次申请",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "这笔 O20261114011 的钱还能退一次吗"
+    ],
+    "expect": {
+      "state": "IDLE",
+      "citation": true
+    },
+    "steps": [
+      {
+        "citation_ids": [
+          "R-06"
+        ],
+        "reply_contains": [
+          "不能重复申请"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "不能重复申请"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "p08",
+    "name": "留出4｜物流查询优先于裸单号",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "帮我看下 O20261120005 快递到哪个站了"
+    ],
+    "expect": {
+      "state": "IDLE",
+      "citation": false
+    },
+    "steps": [
+      {
+        "reply_contains": [
+          "O20261120005"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "O20261120005"
+    ]
+  },
+  {
+    "id": "p09",
+    "name": "留出4｜陌生账号订单不泄露",
+    "split": "holdout4",
+    "user_id": "u_1002",
+    "messages": [
+      "帮忙办一下 O20261112008 的退货"
+    ],
+    "expect": {
+      "state": "AWAIT_ORDER",
+      "citation": false
+    },
+    "steps": [
+      {
+        "reply_contains": [
+          "权限"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "权限"
+    ],
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "p10",
+    "name": "留出4｜政策数字问句",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "七天是从哪天开始算的啊"
+    ],
+    "expect": {
+      "state": "IDLE",
+      "citation": true
+    },
+    "steps": [
+      {
+        "citation_ids": [
+          "R-01"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "R-01"
+    ]
+  },
+  {
+    "id": "p11",
+    "name": "留出4｜洗过之后提示审核风险",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261115001 洗过一次还能退不"
+    ],
+    "expect": {
+      "state": "AWAIT_CONFIRM",
+      "citation": true
+    },
+    "steps": [
+      {
+        "reply_contains": [
+          "审核"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "审核"
+    ]
+  },
+  {
+    "id": "p12",
+    "name": "留出4｜问句不能被当成确认",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261115001 申请退货，走七天无理由",
+      "可以退吗"
+    ],
+    "expect": {
+      "state": "AWAIT_CONFIRM",
+      "citation": true
+    },
+    "steps": [
+      {},
+      {
+        "state": "AWAIT_CONFIRM",
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "确认"
+    ]
+  },
+  {
+    "id": "p13",
+    "name": "留出4｜等待确认时放弃",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261115001 申请退货，先放我这儿",
+      "回头再说吧"
+    ],
+    "expect": {
+      "state": "AWAIT_CONFIRM",
+      "citation": true
+    },
+    "steps": [
+      {},
+      {
+        "state": "AWAIT_CONFIRM",
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "确认"
+    ]
+  },
+  {
+    "id": "p14",
+    "name": "留出4｜查订单状态",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "查一下 O20261116013 目前是什么状态"
+    ],
+    "expect": {
+      "state": "IDLE",
+      "citation": false
+    },
+    "steps": [
+      {
+        "reply_contains": [
+          "O20261116013"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "O20261116013"
+    ]
+  },
+  {
+    "id": "p15",
+    "name": "留出4｜无条款问题不乱编",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "你们客服热线多少"
+    ],
+    "expect": {
+      "state": "IDLE",
+      "citation": false
+    },
+    "steps": [
+      {
+        "no_ticket": true
+      }
+    ],
+    "facts": []
+  },
+  {
+    "id": "p16",
+    "name": "留出4｜明确要求人工",
+    "split": "holdout4",
+    "user_id": "u_1001",
+    "messages": [
+      "转人工吧，我讲不清楚"
+    ],
+    "expect": {
+      "state": "HUMAN",
+      "citation": true
+    },
+    "steps": [
+      {
+        "state": "HUMAN",
+        "reply_contains": [
+          "交接信息"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "交接信息"
+    ]
+  }
+]

@@ -1,0 +1,166 @@
+[
+  {
+    "id": "s01",
+    "name": "政策问答：退货期限（R-01）",
+    "split": "llm_sample",
+    "source_case": "c10",
+    "focus": "政策问答 / 条款引用 / 数字事实",
+    "user_id": "u_1001",
+    "messages": ["退货政策是几天？"],
+    "expect": {"state": "IDLE", "citation": true, "reply_contains": ["R-01"]},
+    "steps": [
+      {"state": "IDLE", "intent": "policy", "reply_contains": ["R-01", "7 天", "第 7 日"], "citation_ids": ["R-01"], "no_ticket": true}
+    ],
+    "facts": ["R-01", "7 天"],
+    "forbid": ["R-09", "R-99", "工单已创建", "保证退款"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "s02",
+    "name": "政策问句：退货运费谁承担（不得被「退货」抢成办理动作）",
+    "split": "llm_sample",
+    "source_case": "h16",
+    "focus": "政策问句 vs 退货动作 / 意图分流",
+    "user_id": "u_1001",
+    "messages": ["退货要自己付邮费吗"],
+    "expect": {"state": "IDLE", "citation": true},
+    "steps": [
+      {"state": "IDLE", "intent": "policy", "reply_contains": ["R-05", "运费"], "citation_ids": ["R-05"], "no_ticket": true}
+    ],
+    "facts": ["R-05"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "s03",
+    "name": "越权：他人订单不得办理或泄露信息",
+    "split": "llm_sample",
+    "source_case": "c08",
+    "focus": "越权拦截 / 信息泄露",
+    "user_id": "u_1001",
+    "messages": ["我要退货", "O20261112008"],
+    "expect": {"state": "AWAIT_ORDER", "reply_contains": ["不在当前登录账号"]},
+    "steps": [
+      {"state": "AWAIT_ORDER", "reply_contains": ["订单号"], "no_ticket": true},
+      {"state": "AWAIT_ORDER", "reply_contains": ["不在当前登录账号", "没有权限"], "meta_contains": {"denied": true}, "no_ticket": true}
+    ],
+    "facts": ["没有权限"],
+    "forbid": ["工单已创建", "上海市", "北京市", "¥399.00", "便携蓝牙音箱"],
+    "require_events": ["security_violation"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "s04",
+    "name": "纯口语退货（不含「退」字）识别为退货诉求",
+    "split": "llm_sample",
+    "source_case": "c13",
+    "focus": "口语化意图召回",
+    "user_id": "u_1001",
+    "messages": ["这个单子我不想要了"],
+    "expect": {"state": "AWAIT_ORDER"},
+    "steps": [
+      {"state": "AWAIT_ORDER", "intent": "return", "reply_contains": ["订单号"], "no_ticket": true}
+    ],
+    "facts": ["订单号"],
+    "forbid": ["工单已创建"]
+  },
+  {
+    "id": "s05",
+    "name": "确认否定：先别确认不得建单",
+    "split": "llm_sample",
+    "source_case": "h09",
+    "focus": "否定确认 / P0 误建单",
+    "user_id": "u_1001",
+    "messages": ["不想要了", "O20261115001", "先别确认"],
+    "expect": {"state": "AWAIT_CONFIRM", "ticket": false},
+    "steps": [
+      {},
+      {},
+      {"state": "AWAIT_CONFIRM", "intent": "hesitate", "reply_contains": ["先不提交"], "no_ticket": true}
+    ],
+    "facts": ["先不提交"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "s06",
+    "name": "换货 / 质量问题：走 R-02 通道",
+    "split": "llm_sample",
+    "source_case": "h17",
+    "focus": "换货诉求 / 质量通道",
+    "user_id": "u_1001",
+    "messages": ["东西坏了能换吗 O20261115001"],
+    "expect": {"state": "AWAIT_CONFIRM"},
+    "steps": [
+      {"state": "AWAIT_CONFIRM", "citation_ids": ["R-02"], "no_ticket": true}
+    ],
+    "facts": ["质量问题"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "s07",
+    "name": "完整退货建单：确认摘要 → 工单",
+    "split": "llm_sample",
+    "source_case": "c01",
+    "focus": "多轮状态机 / 确认建单 / 工单号事实",
+    "user_id": "u_1001",
+    "messages": ["我要退货", "O20261115001", "确认"],
+    "expect": {"state": "TICKETED", "ticket": true, "citation": true, "order_id": "O20261115001"},
+    "steps": [
+      {"state": "AWAIT_ORDER", "intent": "return", "reply_contains": ["订单号"], "reply_not_contains": ["工单已创建"], "no_ticket": true},
+      {"state": "AWAIT_CONFIRM", "reply_contains": ["O20261115001", "¥299.00", "今天到期", "确认无误"], "citation_ids": ["R-01"], "no_ticket": true},
+      {"state": "TICKETED", "reply_contains": ["售后工单已创建", "O20261115001"], "citation_ids": ["R-05", "R-07"], "ticket": true}
+    ],
+    "facts": ["O20261115001"],
+    "forbid": ["没有创建工单", "工单已创建失败", "保证退款", "无条件"],
+    "require_events": ["ticket_create_attempt"],
+    "forbid_events": []
+  },
+  {
+    "id": "s08",
+    "name": "超期：不能自动办理，转人工",
+    "split": "llm_sample",
+    "source_case": "c03",
+    "focus": "期限边界 / 拒绝口径",
+    "user_id": "u_1001",
+    "messages": ["我要退货", "O20261115002"],
+    "expect": {"state": "HUMAN", "reply_contains": ["超过"], "ticket": false},
+    "steps": [
+      {"state": "AWAIT_ORDER", "reply_contains": ["订单号"], "no_ticket": true},
+      {"state": "HUMAN", "reply_contains": ["超过", "8 天", "2026-11-21"], "citation_ids": ["R-01"], "no_ticket": true}
+    ],
+    "facts": ["超过"],
+    "forbid": ["工单已创建", "可以办理退货", "符合七天无理由退货条件"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "s09",
+    "name": "签收信息缺失：转人工不自动拒绝",
+    "split": "llm_sample",
+    "source_case": "c06",
+    "focus": "数据缺失 / 不臆断",
+    "user_id": "u_1001",
+    "messages": ["我要退货", "O20261119010"],
+    "expect": {"state": "HUMAN", "reply_contains": ["人工"]},
+    "steps": [
+      {"state": "AWAIT_ORDER", "reply_contains": ["订单号"], "no_ticket": true},
+      {"state": "HUMAN", "reply_contains": ["签收信息缺失", "待人工处理"], "citation_ids": ["R-08"], "no_ticket": true}
+    ],
+    "facts": ["待人工处理"],
+    "forbid": ["工单已创建", "已超过", "不符合退货条件"],
+    "forbid_events": ["ticket_create_attempt"]
+  },
+  {
+    "id": "s10",
+    "name": "无关问句：不编造条款、不建单",
+    "split": "llm_sample",
+    "source_case": "h11",
+    "focus": "拒答边界 / 幻觉抑制",
+    "user_id": "u_1001",
+    "messages": ["今天天气怎么样"],
+    "expect": {"ticket": false},
+    "steps": [
+      {"no_ticket": true, "reply_not_contains": ["R-01", "R-02", "R-03", "R-04", "R-05", "R-06", "R-07", "R-08"]}
+    ],
+    "forbid": ["保证退款", "无条件"],
+    "forbid_events": ["ticket_create_attempt"]
+  }
+]

@@ -1,0 +1,438 @@
+[
+  {
+    "id": "y01",
+    "name": "定制属性不是缺陷：刻名字不等于质量问题",
+    "split": "llm_sample7",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261118004 保温杯刻了我的名字，还能退吗"
+    ],
+    "expect": {
+      "state": "HUMAN",
+      "reply_contains": [
+        "不支持七天无理由退货"
+      ]
+    },
+    "steps": [
+      {
+        "state": "HUMAN",
+        "reply_contains": [
+          "不支持七天无理由退货"
+        ],
+        "citation_ids": [
+          "R-03"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "不支持七天无理由退货"
+    ],
+    "forbid": [
+      "工单已创建",
+      "符合质量问题退货条件"
+    ],
+    "source_case": "c05",
+    "focus": "B7 核心回归：真实模型在 x09 把「刻字」判成质量问题 → 绕过定制类目限制、错给 15 天通道；槽位证据校验后必须回到 R-03 + 转人工",
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "y02",
+    "name": "「质量没问题」里的「质量」不是证据",
+    "split": "llm_sample7",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261118004 刻字了还能退吗，质量没问题的"
+    ],
+    "expect": {
+      "state": "HUMAN",
+      "reply_contains": [
+        "不支持七天无理由退货"
+      ]
+    },
+    "steps": [
+      {
+        "state": "HUMAN",
+        "reply_contains": [
+          "不支持七天无理由退货"
+        ],
+        "citation_ids": [
+          "R-03"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "不支持七天无理由退货"
+    ],
+    "forbid": [
+      "工单已创建",
+      "符合质量问题退货条件"
+    ],
+    "source_case": "c05",
+    "focus": "否定语境：用户自己声明「质量没问题」，模型仍可能因为看到「质量」二字填 quality",
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "y03",
+    "name": "使用状态不是缺陷：内衣洗过仍不支持无理由",
+    "split": "llm_sample7",
+    "user_id": "u_1002",
+    "messages": [
+      "O20261115003 内衣洗过一次了，能退吗"
+    ],
+    "expect": {
+      "state": "HUMAN",
+      "reply_contains": [
+        "不支持七天无理由退货"
+      ]
+    },
+    "steps": [
+      {
+        "state": "HUMAN",
+        "reply_contains": [
+          "不支持七天无理由退货"
+        ],
+        "citation_ids": [
+          "R-03"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "不支持七天无理由退货"
+    ],
+    "forbid": [
+      "工单已创建",
+      "符合质量问题退货条件"
+    ],
+    "source_case": "c05",
+    "focus": "状态词（洗过 / 拆封 / 穿过）不得当作质量证据，内衣类目仍走 R-03",
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "y04",
+    "name": "真缺陷照旧走质量通道并建单（生鲜发霉）",
+    "split": "llm_sample7",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261110006 蓝莓有一盒发霉了，这算质量问题吧",
+      "确认"
+    ],
+    "expect": {
+      "state": "TICKETED",
+      "ticket": true
+    },
+    "steps": [
+      {
+        "state": "AWAIT_CONFIRM",
+        "reply_contains": [
+          "符合质量问题退货条件",
+          "运费由商家承担"
+        ],
+        "citation_ids": [
+          "R-02",
+          "R-05"
+        ],
+        "no_ticket": true
+      },
+      {
+        "state": "TICKETED",
+        "reply_contains": [
+          "工单已创建",
+          "质量问题退货"
+        ]
+      }
+    ],
+    "facts": [
+      "工单已创建",
+      "质量问题退货"
+    ],
+    "forbid": [
+      "没有查到订单"
+    ],
+    "source_case": "c14",
+    "focus": "反向保护：证据校验只做减法，真实缺陷不能被降级误伤；质量问题通道建单照旧",
+    "require_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "y05",
+    "name": "否定缺陷：没有破损就是不喜欢",
+    "split": "llm_sample7",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261118004 杯子没有破损，就是不喜欢这个刻字"
+    ],
+    "expect": {
+      "state": "HUMAN",
+      "reply_contains": [
+        "不支持七天无理由退货"
+      ]
+    },
+    "steps": [
+      {
+        "state": "HUMAN",
+        "reply_contains": [
+          "不支持七天无理由退货"
+        ],
+        "citation_ids": [
+          "R-03"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "不支持七天无理由退货"
+    ],
+    "forbid": [
+      "工单已创建",
+      "符合质量问题退货条件"
+    ],
+    "source_case": "c05",
+    "focus": "否定语素必须在动作邻域内生效：「没有破损」不构成质量证据",
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "y06",
+    "name": "质量通道的期限优势：签收 8 天仍可退",
+    "split": "llm_sample7",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261115002 洗了一次就掉色，这是质量问题吧，我要退货"
+    ],
+    "expect": {
+      "state": "AWAIT_CONFIRM",
+      "reply_contains": [
+        "符合质量问题退货条件"
+      ]
+    },
+    "steps": [
+      {
+        "state": "AWAIT_CONFIRM",
+        "reply_contains": [
+          "符合质量问题退货条件",
+          "运费由商家承担"
+        ],
+        "citation_ids": [
+          "R-02",
+          "R-05"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "符合质量问题退货条件"
+    ],
+    "forbid": [
+      "符合七天无理由退货条件",
+      "已超过"
+    ],
+    "source_case": "c14",
+    "focus": "同一笔订单在 7 天无理由下已超期，走质量通道（15 天）仍可办——这正是 reason 槽位必须准确的原因",
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "y07",
+    "name": "定制商品真的做坏了，仍按质量问题处理",
+    "split": "llm_sample7",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261118004 刻的字都歪了，这算质量问题，能退吗"
+    ],
+    "expect": {
+      "state": "AWAIT_CONFIRM",
+      "reply_contains": [
+        "符合质量问题退货条件"
+      ]
+    },
+    "steps": [
+      {
+        "state": "AWAIT_CONFIRM",
+        "reply_contains": [
+          "符合质量问题退货条件",
+          "运费由商家承担"
+        ],
+        "citation_ids": [
+          "R-02",
+          "R-05"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "符合质量问题退货条件"
+    ],
+    "forbid": [
+      "不支持七天无理由退货"
+    ],
+    "source_case": "c14",
+    "focus": "属性词与缺陷要分开：句子里出现「刻字」不代表证据无效——「刻歪了」是缺陷"
+  },
+  {
+    "id": "y08",
+    "name": "政策问询：质量问题的运费承担",
+    "split": "llm_sample7",
+    "user_id": "u_1001",
+    "messages": [
+      "质量问题退货的运费谁承担"
+    ],
+    "expect": {
+      "state": "IDLE",
+      "reply_contains": [
+        "退货运费由商家承担"
+      ]
+    },
+    "steps": [
+      {
+        "state": "IDLE",
+        "reply_contains": [
+          "退货运费由商家承担"
+        ],
+        "citation_ids": [
+          "R-05"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "退货运费由商家承担"
+    ],
+    "forbid": [
+      "工单已创建"
+    ],
+    "source_case": "c10",
+    "focus": "问规则不等于办业务：含「质量问题」字样但无订单诉求，不能被槽位校验带偏成建单",
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "y09",
+    "name": "查无订单：不建单不承诺",
+    "split": "llm_sample7",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261129999 我要退货"
+    ],
+    "expect": {
+      "state": "AWAIT_ORDER",
+      "reply_contains": [
+        "没有查到订单"
+      ]
+    },
+    "steps": [
+      {
+        "state": "AWAIT_ORDER",
+        "reply_contains": [
+          "没有查到订单"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "没有查到订单"
+    ],
+    "forbid": [
+      "工单已创建",
+      "符合质量问题退货条件"
+    ],
+    "source_case": "c07",
+    "focus": "兜底路径：订单不存在时既不能建单，也不能给出资格结论",
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "y10",
+    "name": "已退款订单：禁止重复申请",
+    "split": "llm_sample7",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261114011 这个还能再退一次吗"
+    ],
+    "expect": {
+      "state": "HUMAN",
+      "reply_contains": [
+        "已退款"
+      ]
+    },
+    "steps": [
+      {
+        "state": "HUMAN",
+        "reply_contains": [
+          "已退款",
+          "不能重复申请"
+        ],
+        "citation_ids": [
+          "R-06"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "已退款",
+      "不能重复申请"
+    ],
+    "forbid": [
+      "工单已创建",
+      "符合质量问题退货条件"
+    ],
+    "source_case": "c16",
+    "focus": "订单状态优先于日期与理由：已退款订单直接拒绝，不进资格判定",
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  },
+  {
+    "id": "y11",
+    "name": "未发货订单：取消而非退货",
+    "split": "llm_sample7",
+    "user_id": "u_1001",
+    "messages": [
+      "O20261121007 不想要了，键盘还没发货吧"
+    ],
+    "expect": {
+      "state": "IDLE",
+      "reply_contains": [
+        "还未发货"
+      ]
+    },
+    "steps": [
+      {
+        "state": "IDLE",
+        "reply_contains": [
+          "还未发货",
+          "取消订单"
+        ],
+        "citation_ids": [
+          "R-04"
+        ],
+        "no_ticket": true
+      }
+    ],
+    "facts": [
+      "还未发货"
+    ],
+    "forbid": [
+      "工单已创建",
+      "符合七天无理由退货条件"
+    ],
+    "source_case": "c15",
+    "focus": "状态分支优先级：待发货走 R-04 取消，不能给出退货资格结论",
+    "forbid_events": [
+      "ticket_create_attempt"
+    ]
+  }
+]
